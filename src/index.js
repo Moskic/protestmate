@@ -1,4 +1,6 @@
 const MAX_BODY_BYTES = 10 * 1024;
+const TARGET_MIN_DESCRIPTION_WORDS = 250;
+const MAX_DESCRIPTION_WORDS = 300;
 
 const JSON_HEADERS = {
   "content-type": "application/json; charset=utf-8",
@@ -164,7 +166,7 @@ function buildMessages(data) {
     {
       role: "system",
       content:
-        "You edit Chinese sim-racing incident notes into a clear, neutral English description suitable for an iRacing protest. Follow every rule below.\n1. Use only supplied observable facts. Do not add intent, conclusions, or evaluative adjectives such as safe, unsafe, deliberate, or intentional unless that exact claim is supplied as an observable fact. Translate actions directly: maintained distance must not become maintained a safe distance.\n2. Always include the supplied session type, lap or session time, and track location in natural prose.\n3. Write from the reporting driver's first-person perspective using I and my. Never use third-person labels such as the reporting driver.\n4. Treat violation_type only as classification metadata. Never use it to infer intent, conclude that a rule was violated, or characterize an action as complying with or violating a procedure. For example, slowed under yellow must not become followed the yellow flag procedure.\n5. Mention optional information only when its key exists in the JSON. Never mention missing information and never write placeholders such as no outcomes were reported or the car number is unavailable.\n6. Never include the reporter's uncertainty, question, or opinion about whether the conduct is protestable, even if it appears in additional_context. Describe only the incident itself.\n7. Return only one final English paragraph with no title, bullets, labels, or explanation, at or below 300 English words.",
+        `You edit Chinese sim-racing incident notes into a clear, neutral English description suitable for an iRacing protest. Follow every rule below.\n1. Use only supplied observable facts. Do not add intent, conclusions, or evaluative adjectives such as safe, unsafe, deliberate, or intentional unless that exact claim is supplied as an observable fact. Translate actions directly: maintained distance must not become maintained a safe distance.\n2. Always include the supplied session type, lap or session time, and track location in natural prose.\n3. Write from the reporting driver's first-person perspective using I and my. Never use third-person labels such as the reporting driver.\n4. Treat violation_type only as classification metadata. Never use it to infer intent, conclude that a rule was violated, or characterize an action as complying with or violating a procedure. For example, slowed under yellow must not become followed the yellow flag procedure.\n5. Mention optional information only when its key exists in the JSON. Never mention missing information and never write placeholders such as no outcomes were reported or the car number is unavailable.\n6. Never include the reporter's uncertainty, question, or opinion about whether the conduct is protestable, even if it appears in additional_context. Describe only the incident itself.\n7. Develop the supplied facts in a clear chronological order, explaining the sequence, positions, movements, my response, and the stated outcome where those details are provided. Remain factual and avoid repetition or padding.\n8. Return only one final English paragraph with no title, bullets, labels, or explanation. Aim for ${TARGET_MIN_DESCRIPTION_WORDS} to ${MAX_DESCRIPTION_WORDS} English words, but prioritize factual accuracy and avoid padding when the supplied facts do not support that length. Never exceed ${MAX_DESCRIPTION_WORDS} English words.`,
     },
     {
       role: "user",
@@ -186,7 +188,7 @@ function isValidAiContent(content) {
   if (/```|^\s{0,3}#{1,6}\s|^\s*(?:[-*+]\s|\d+[.)]\s)|\*\*|__/.test(trimmed)) return false;
 
   const wordCount = countEnglishWords(trimmed);
-  if (wordCount === 0 || wordCount > 300) return false;
+  if (wordCount === 0 || wordCount > MAX_DESCRIPTION_WORDS) return false;
 
   return /[.!?](?:["')\]]*)$/.test(trimmed);
 }
@@ -257,7 +259,7 @@ async function handleGenerate(request, env) {
     result = await env.AI.run("@cf/qwen/qwen3-30b-a3b-fp8", {
       messages: buildMessages(validation.value),
       temperature: 0.2,
-      max_tokens: 550,
+      max_tokens: 650,
       stream: false,
     });
   } catch {
