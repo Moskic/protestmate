@@ -551,6 +551,18 @@
         .guide-footer { align-items: stretch; flex-direction: column; }
         .guide-footer .dialog-close { width: 100%; }
         .image-dialog { width: 100%; max-width: none; max-height: 100%; height: 100%; border-radius: 0; }
+
+        input:not([type="checkbox"]), select,
+        .primary-button, .copy-button, .skip-details-button, .dialog-close,
+        .check span { min-height: 44px; }
+
+        .inline-link {
+          display: inline-flex;
+          min-height: 44px;
+          align-items: center;
+          padding: 0 4px;
+          vertical-align: middle;
+        }
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -872,6 +884,25 @@
         if (error) error.textContent = message;
       }
 
+      function clearFieldError(field) {
+        const input = form.elements[field];
+        if (input && "removeAttribute" in input) input.removeAttribute("aria-invalid");
+        const error = document.querySelector(`#${field}-error`);
+        if (error) error.textContent = "";
+      }
+
+      function refreshVisibleFieldError(field) {
+        const error = document.querySelector(`#${field}-error`);
+        if (!error?.textContent) return;
+
+        const message = validate(collectPayload())[field];
+        if (message) {
+          showFieldError(field, message);
+        } else {
+          clearFieldError(field);
+        }
+      }
+
       function showStatusError(message) {
         statusError.textContent = message;
         statusError.classList.add("visible");
@@ -980,19 +1011,30 @@
         }
       });
 
-      form.addEventListener("input", resetResult);
-
-      form.addEventListener("change", (event) => {
+      function handleFormEdit(event) {
+        resetResult();
         const target = event.target;
-        if (!(target instanceof HTMLInputElement) || target.name !== "outcomes" || !target.checked) return;
-
-        const outcomeInputs = [...form.querySelectorAll("input[name='outcomes']")];
-        if (target.value === "avoided_contact" || target.value === "contact") {
+        if (
+          target instanceof HTMLInputElement &&
+          target.name === "outcomes" &&
+          target.checked &&
+          (target.value === "avoided_contact" || target.value === "contact")
+        ) {
           const conflictingValue = target.value === "avoided_contact" ? "contact" : "avoided_contact";
-          const conflictingInput = outcomeInputs.find((input) => input.value === conflictingValue);
+          const conflictingInput = form.querySelector(`input[name="outcomes"][value="${conflictingValue}"]`);
           if (conflictingInput) conflictingInput.checked = false;
         }
-      });
+
+        const field = target.name;
+        if (!field) return;
+
+        refreshVisibleFieldError(field);
+        if (field === "outcomes") refreshVisibleFieldError("additionalContext");
+        if (field === "additionalContext") refreshVisibleFieldError("outcomes");
+      }
+
+      form.addEventListener("input", handleFormEdit);
+      form.addEventListener("change", handleFormEdit);
 
       openGuideButton.addEventListener("click", () => {
         guideDialog.showModal();
