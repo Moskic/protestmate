@@ -556,8 +556,6 @@
       .guide-summary strong { color: var(--text); }
       .guide-summary ul { margin: 8px 0 0; padding-left: 20px; }
 
-      .guide-source-inline { margin: 28px 0 0; padding-top: 22px; border-top: 1px solid var(--line); }
-
       .guide-step + .guide-step { margin-top: 28px; padding-top: 28px; border-top: 1px solid var(--line); }
 
       .guide-step-heading {
@@ -595,9 +593,6 @@
       }
 
       .guide-figure figcaption { max-width: 680px; margin: 8px auto 0; color: var(--muted); font-size: .8rem; line-height: 1.55; }
-
-      .guide-source { margin: 0; color: var(--muted); font-size: .8rem; line-height: 1.6; }
-      .guide-source a { color: var(--accent-dark); text-underline-offset: 3px; }
 
       .image-dialog {
         width: min(1200px, calc(100% - 24px));
@@ -694,7 +689,7 @@
         <h2 id="preflight-title">提交前先确认</h2>
         <p>
           <strong>赛道类 Protest 必须附 Replay，否则不会受理。</strong>
-          请将文件裁剪到相关事件片段并控制在 30 MB 以内。场次结束 30 分钟后方可提交，且须在事件发生后 7 天内完成。
+          请将文件裁剪到相关事件片段并控制在 50 MB 以内。场次结束 30 分钟后方可提交，且须在事件发生后 7 天内完成。
           <button id="open-protest-guide" class="inline-link" type="button">查看提交步骤</button>
         </p>
         <p>
@@ -868,7 +863,7 @@
           <strong>提交前须知</strong>
           <ul>
             <li>场次结束后等待 30 分钟，并在事件发生后 7 天内提交。</li>
-            <li>赛道类 Protest 必须附 Replay；文件不得超过 30 MB，请只保留相关片段。</li>
+            <li>赛道类 Protest 必须附 Replay；每个附件不得超过 50 MB，请只保留相关片段。</li>
             <li>应通过 iRacing UI 或 iRacingWeb 的正式表单提交，邮件或私信不会被受理。</li>
           </ul>
         </aside>
@@ -881,24 +876,24 @@
           <p>可以从 Help 页面点击 <strong>File a Protest</strong>，也可以在 <strong>Results &amp; Stats</strong> 中找到对应场次并点击 <strong>View Results</strong>。</p>
 
           <figure class="guide-figure">
-            <button class="guide-image-button" type="button" data-guide-image="assets/protest-guide/01-file-protest-entry.png" data-guide-alt="iRacing Help 页面中 File a Protest 入口">
-              <img src="assets/protest-guide/01-file-protest-entry.png" width="1668" height="832" loading="lazy" alt="iRacing Help 页面中 File a Protest 入口">
+            <button class="guide-image-button" type="button" data-guide-image="assets/protest-guide/01-file-protest-entry.png" data-guide-alt="中文版 iRacing 帮助页面中的提出申诉入口">
+              <img src="assets/protest-guide/01-file-protest-entry.png" width="1684" height="904" loading="lazy" alt="中文版 iRacing 帮助页面中的提出申诉入口">
             </button>
-            <figcaption>入口一：Help → File a Protest。点击图片可放大。</figcaption>
+            <figcaption>入口一：帮助 → 提出申诉。点击图片可放大。</figcaption>
           </figure>
 
           <figure class="guide-figure">
-            <button class="guide-image-button" type="button" data-guide-image="assets/protest-guide/02-view-results.png" data-guide-alt="iRacing Results and Stats 页面中的 View Results 按钮">
-              <img src="assets/protest-guide/02-view-results.png" width="1821" height="835" loading="lazy" alt="iRacing Results and Stats 页面中的 View Results 按钮">
+            <button class="guide-image-button" type="button" data-guide-image="assets/protest-guide/02-view-results.png" data-guide-alt="中文版 iRacing 比赛结果与统计页面中的比赛结果按钮">
+              <img src="assets/protest-guide/02-view-results.png" width="1741" height="906" loading="lazy" alt="中文版 iRacing 比赛结果与统计页面中的比赛结果按钮">
             </button>
-            <figcaption>入口二：Results &amp; Stats → View Results。</figcaption>
+            <figcaption>入口二：比赛结果与统计 → 比赛结果。</figcaption>
           </figure>
 
           <figure class="guide-figure">
-            <button class="guide-image-button" type="button" data-guide-image="assets/protest-guide/03-results-page.png" data-guide-alt="iRacing 比赛结果窗口右下角的 File Protest 按钮">
-              <img src="assets/protest-guide/03-results-page.png" width="1533" height="770" loading="lazy" alt="iRacing 比赛结果窗口右下角的 File Protest 按钮">
+            <button class="guide-image-button" type="button" data-guide-image="assets/protest-guide/03-results-page.png" data-guide-alt="中文版 iRacing 比赛结果窗口右下角的提出申诉按钮">
+              <img src="assets/protest-guide/03-results-page.png" width="1674" height="817" loading="lazy" alt="中文版 iRacing 比赛结果窗口右下角的提出申诉按钮">
             </button>
-            <figcaption>打开比赛结果后，点击右下角的 File Protest。</figcaption>
+            <figcaption>打开比赛结果后，点击右下角的“提出申诉”。</figcaption>
           </figure>
         </section>
 
@@ -911,7 +906,7 @@
 
           <figure class="guide-figure">
             <button class="guide-image-button" type="button" data-guide-image="assets/protest-guide/04-select-violation.png" data-guide-alt="iRacing Protest 表单中的违规类型、场次和车手选择区域">
-              <img src="assets/protest-guide/04-select-violation.png" width="963" height="662" loading="lazy" alt="iRacing Protest 表单中的违规类型、场次和车手选择区域">
+              <img src="assets/protest-guide/04-select-violation.png" width="1284" height="751" loading="lazy" alt="iRacing Protest 表单中的违规类型、场次和车手选择区域">
             </button>
             <figcaption>依次选择违规类型、场次 ID 和车手名称。</figcaption>
           </figure>
@@ -922,27 +917,23 @@
             <span class="guide-step-number">STEP 03</span>
             <h3 id="guide-step-3">填写描述并上传 Replay</h3>
           </div>
-          <p>把 ProtestMate 生成的英文描述粘贴到 <strong>Complaint / Description</strong>，然后上传裁剪好的 Replay。每个附件上限为 30 MB，确认内容和附件无误后再提交。</p>
+          <p>把 ProtestMate 生成的英文描述粘贴到<strong>描述</strong>输入框，然后上传裁剪好的 Replay。最多上传三个附件，每个附件上限为 50 MB，确认内容和附件无误后再提交。</p>
 
           <figure class="guide-figure">
-            <button class="guide-image-button" type="button" data-guide-image="assets/protest-guide/05-protest-form.png" data-guide-alt="iRacing Protest 表单的描述输入和提交区域">
-              <img src="assets/protest-guide/05-protest-form.png" width="965" height="766" loading="lazy" alt="iRacing Protest 表单的描述输入和提交区域">
+            <button class="guide-image-button" type="button" data-guide-image="assets/protest-guide/05-protest-form.png" data-guide-alt="iRacing Protest 表单的描述输入和 Replay 文件上传区域">
+              <img src="assets/protest-guide/05-protest-form.png" width="1276" height="703" loading="lazy" alt="iRacing Protest 表单的描述输入和 Replay 文件上传区域">
             </button>
-            <figcaption>填写 Complaint / Description，并核对表单内容。</figcaption>
+            <figcaption>粘贴生成的英文描述，并从 Documents/iRacing/replays 文件夹选择 Replay。</figcaption>
           </figure>
 
           <figure class="guide-figure">
-            <button class="guide-image-button" type="button" data-guide-image="assets/protest-guide/06-upload-replay.png" data-guide-alt="iRacing Protest 表单的 Replay 文件上传区域">
-              <img src="assets/protest-guide/06-upload-replay.png" width="493" height="636" loading="lazy" alt="iRacing Protest 表单的 Replay 文件上传区域">
+            <button class="guide-image-button" type="button" data-guide-image="assets/protest-guide/06-upload-replay.png" data-guide-alt="iRacing Protest 表单底部的确认选项和提交按钮">
+              <img src="assets/protest-guide/06-upload-replay.png" width="1288" height="834" loading="lazy" alt="iRacing Protest 表单底部的确认选项和提交按钮">
             </button>
-            <figcaption>点击 Choose a File 上传 Replay；最多三个附件，每个不超过 30 MB。</figcaption>
+            <figcaption>核对内容后勾选确认，再点击 Submit 提交。</figcaption>
           </figure>
         </section>
 
-        <p class="guide-source guide-source-inline">
-          本页为 ProtestMate 根据 iRacing 官方指南整理的非官方中文说明，截图版权归 iRacing 所有；如有差异，请以
-          <a href="https://support.iracing.com/support/solutions/articles/31000133441-how-to-file-a-protest" target="_blank" rel="noreferrer">官方原文</a>为准。
-        </p>
       </div>
 
     </dialog>
