@@ -278,6 +278,26 @@
 
       .divider { height: 1px; margin: 26px 0; background: var(--line); }
 
+      .skip-details {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 16px;
+      }
+
+      .skip-details-button {
+        padding: 7px 10px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+        color: var(--text);
+        cursor: pointer;
+        font-size: .74rem;
+        font-weight: 650;
+      }
+
+      .skip-details-button:hover { background: var(--surface-hover); }
+      .skip-details-button:focus-visible { outline: 2px solid var(--track); outline-offset: 3px; }
+
       .form-actions {
         display: flex;
         align-items: center;
@@ -605,6 +625,10 @@
             </div>
           </div>
 
+          <div class="skip-details">
+            <button id="skip-details-button" class="skip-details-button" type="button">跳过选填，前往生成 ↓</button>
+          </div>
+
           <div class="divider"></div>
           <h2 class="section-heading"><span class="step">02</span>补充细节 <span class="optional">选填，填写后描述会更准确</span></h2>
 
@@ -803,6 +827,7 @@
       const resultCard = document.querySelector("#result-card");
       const resultText = document.querySelector("#result-text");
       const copyButton = document.querySelector("#copy-button");
+      const skipDetailsButton = document.querySelector("#skip-details-button");
       const openGuideButton = document.querySelector("#open-protest-guide");
       const guideDialog = document.querySelector("#protest-guide");
       const imageDialog = document.querySelector("#guide-image-dialog");
@@ -996,6 +1021,11 @@
       imageDialog.addEventListener("close", () => {
         fullGuideImage.removeAttribute("src");
         fullGuideImage.alt = "";
+      });
+
+      skipDetailsButton.addEventListener("click", () => {
+        submitButton.scrollIntoView({ behavior: "smooth", block: "center" });
+        submitButton.focus({ preventScroll: true });
       });
 
       copyButton.addEventListener("click", async () => {
