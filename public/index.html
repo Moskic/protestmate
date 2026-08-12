@@ -78,15 +78,22 @@
         box-shadow: inset 4px 0 0 var(--accent);
       }
 
-      .header-note {
+      .header-actions { display: flex; align-items: center; gap: 8px; }
+
+      .status-entry {
+        min-height: 34px;
         padding: 7px 10px;
-        border: 1px solid var(--line);
+        border: 1px solid var(--track);
         border-radius: 8px;
-        background: var(--surface);
-        color: var(--muted);
+        background: var(--track);
+        color: #fff;
+        cursor: pointer;
         font-size: .76rem;
-        font-weight: 600;
+        font-weight: 650;
       }
+
+      .status-entry:hover { background: #303034; }
+      .status-entry:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
       main { padding: 36px 0 64px; }
 
@@ -426,6 +433,86 @@
         box-shadow: 0 24px 70px rgb(0 0 0 / 24%);
       }
 
+      .status-dialog {
+        width: min(680px, calc(100% - 40px));
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--surface);
+        box-shadow: 0 24px 70px rgb(0 0 0 / 24%);
+      }
+
+      .status-dialog[open] { display: grid; grid-template-rows: auto minmax(0, 1fr); }
+
+      .status-dialog-body { padding: 20px 22px 22px; }
+      .status-dialog-copy { margin: 0 0 16px; color: var(--muted); font-size: .82rem; line-height: 1.65; }
+      .status-dialog-copy strong { color: var(--text); }
+
+      .status-email-label { display: block; margin-bottom: 6px; font-size: .84rem; font-weight: 650; }
+      .status-email-input { min-height: 190px; font-size: .8rem; }
+
+      .status-dialog-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .status-check-button {
+        min-height: 40px;
+        padding: 8px 14px;
+        border: 1px solid var(--accent);
+        border-radius: 8px;
+        background: var(--accent);
+        color: #fff;
+        cursor: pointer;
+        font-size: .82rem;
+        font-weight: 650;
+      }
+
+      .status-check-button:hover { background: var(--accent-dark); }
+      .status-check-button:focus-visible { outline: 2px solid var(--track); outline-offset: 3px; }
+      .status-privacy { margin: 0; color: var(--muted); font-size: .7rem; line-height: 1.5; }
+
+      .status-result {
+        display: none;
+        margin-top: 16px;
+        padding: 14px 15px;
+        border: 1px solid var(--line);
+        border-left-width: 3px;
+        border-radius: 9px;
+        background: var(--field);
+      }
+
+      .status-result.visible { display: block; }
+      .status-result[data-status="pending"] { border-color: #93c5fd; background: #eff6ff; }
+      .status-result[data-status="not-intentional"] { border-color: #f4c96b; background: #fffbeb; }
+      .status-result[data-status="resolved"] { border-color: #86d39c; background: #f0fdf4; }
+      .status-result[data-status="unknown"] { border-color: var(--line); background: var(--field); }
+
+      .status-result-heading {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 5px;
+        font-size: .9rem;
+        letter-spacing: -.01em;
+      }
+
+      .status-result-marker {
+        display: inline-grid;
+        width: 21px;
+        height: 21px;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--surface);
+        font-size: .72rem;
+        font-weight: 800;
+      }
+
+      .status-result-copy { margin: 0; color: var(--text); font-size: .78rem; line-height: 1.65; }
+      .status-result-evidence { margin: 8px 0 0; color: var(--muted); font-size: .7rem; line-height: 1.5; }
+
       .guide-dialog[open] { display: grid; grid-template-rows: auto minmax(0, 1fr); }
 
       .guide-header {
@@ -546,7 +633,7 @@
       @media (max-width: 560px) {
         .shell { width: min(100% - 28px, 900px); }
         .site-header { min-height: 76px; }
-        .header-note { padding: 6px 8px; font-size: .68rem; }
+        .status-entry { min-height: 40px; }
         main { padding: 28px 0 48px; }
         .hero { padding: 22px 20px; }
         .form-grid { grid-template-columns: 1fr; }
@@ -555,6 +642,10 @@
         .form-actions { align-items: stretch; flex-direction: column; }
         .primary-button { width: 100%; }
         .guide-dialog { width: 100%; max-width: none; max-height: 100%; height: 100%; border-radius: 0; }
+        .status-dialog { width: 100%; max-width: none; max-height: 100%; height: 100%; border-radius: 0; }
+        .status-dialog-body { padding: 18px 16px; overflow-y: auto; }
+        .status-dialog-actions { align-items: stretch; flex-direction: column; }
+        .status-check-button { width: 100%; }
         .guide-header { padding: 15px 16px; }
         .guide-body { padding: 18px 16px; }
         .image-dialog { width: 100%; max-width: none; max-height: 100%; height: 100%; border-radius: 0; }
@@ -583,7 +674,9 @@
       <div class="brand">
         <span class="brand-mark">PM</span><span>ProtestMate</span>
       </div>
-      <div class="header-note">中文 iRacing Protest 助手</div>
+      <div class="header-actions">
+        <button id="open-status-checker" class="status-entry" type="button">Protest 处理状态</button>
+      </div>
     </header>
 
     <main class="shell">
@@ -734,6 +827,36 @@
       </div>
     </main>
 
+    <dialog id="status-checker" class="status-dialog" aria-labelledby="status-checker-title">
+      <header class="guide-header">
+        <h2 id="status-checker-title">Protest 处理状态</h2>
+        <button class="dialog-close" type="button" data-close-status aria-label="关闭 Protest 处理状态">关闭</button>
+      </header>
+
+      <div class="status-dialog-body">
+        <p class="status-dialog-copy">
+          粘贴 iRacing 发来的<strong>邮件主题和正文</strong>，确认 Protest 当前所处的处理状态。
+        </p>
+        <form id="status-checker-form">
+          <label class="status-email-label" for="status-email-input">iRacing 邮件内容</label>
+          <textarea id="status-email-input" class="status-email-input" maxlength="50000" placeholder="在这里粘贴整封邮件……" required></textarea>
+          <div class="status-dialog-actions">
+            <button class="status-check-button" type="submit">确认状态</button>
+            <p class="status-privacy">邮件只在当前浏览器中处理，不会上传或保存。</p>
+          </div>
+        </form>
+
+        <section id="status-result" class="status-result" role="status" aria-live="polite">
+          <h3 class="status-result-heading">
+            <span id="status-result-marker" class="status-result-marker" aria-hidden="true"></span>
+            <span id="status-result-title"></span>
+          </h3>
+          <p id="status-result-copy" class="status-result-copy"></p>
+          <p id="status-result-evidence" class="status-result-evidence"></p>
+        </section>
+      </div>
+    </dialog>
+
     <dialog id="protest-guide" class="guide-dialog" aria-labelledby="protest-guide-title">
       <header class="guide-header">
         <h2 id="protest-guide-title">如何提交 iRacing Protest</h2>
@@ -845,6 +968,15 @@
       const resultText = document.querySelector("#result-text");
       const copyButton = document.querySelector("#copy-button");
       const skipDetailsButton = document.querySelector("#skip-details-button");
+      const openStatusButton = document.querySelector("#open-status-checker");
+      const statusDialog = document.querySelector("#status-checker");
+      const statusCheckerForm = document.querySelector("#status-checker-form");
+      const statusEmailInput = document.querySelector("#status-email-input");
+      const statusResult = document.querySelector("#status-result");
+      const statusResultMarker = document.querySelector("#status-result-marker");
+      const statusResultTitle = document.querySelector("#status-result-title");
+      const statusResultCopy = document.querySelector("#status-result-copy");
+      const statusResultEvidence = document.querySelector("#status-result-evidence");
       const openGuideButton = document.querySelector("#open-protest-guide");
       const guideDialog = document.querySelector("#protest-guide");
       const imageDialog = document.querySelector("#guide-image-dialog");
@@ -870,6 +1002,77 @@
         protestedDriverName: "请填写被投诉车手的名称。",
         observedAction: "请简单描述事件经过。"
       };
+
+      const protestStatuses = {
+        pending: {
+          marker: "…",
+          title: "已受理 · 审核中",
+          copy: "iRacing 已收到你的 Protest，Steward 尚在审核。审核完成后，你还会收到一封结案邮件。",
+          evidence: "邮件表示 Protest 已收到，且 Steward 将进行审核。"
+        },
+        "not-intentional": {
+          marker: "–",
+          title: "已结案 · 未认定故意或恶意",
+          copy: "Steward 认为这次事故并非故意或恶意造成。事件仍可能被记录，对方车手也可能收到指导或被持续观察。",
+          evidence: "邮件表示事故不被认为是故意或恶意造成。"
+        },
+        resolved: {
+          marker: "✓",
+          title: "已结案 · 具体结果保密",
+          copy: "审核已经完成，对方车手已收到处理结果。iRacing 不会向 Protest 提交者披露是否以及如何处罚。",
+          evidence: "邮件表示审核已完成、对方已获知结果，且具体结果保密。"
+        },
+        unknown: {
+          marker: "?",
+          title: "暂时无法确认",
+          copy: "没有匹配到目前支持的 iRacing 回复模板。请确认已粘贴邮件主题和完整正文。",
+          evidence: "系统不会在依据不足时推测处理结果。"
+        }
+      };
+
+      function normalizeEmailContent(content) {
+        return content
+          .toLowerCase()
+          .replace(/[’‘]/g, "'")
+          .replace(/[–—]/g, "-")
+          .replace(/\s+/g, " ")
+          .trim();
+      }
+
+      function classifyProtestStatus(content) {
+        const normalized = normalizeEmailContent(content);
+
+        const isNotIntentional = [
+          "do not feel that the accident was caused intentionally or with malice",
+          "do not believe that the accident was caused intentionally or with malice",
+          "do not feel the accident was caused intentionally or with malice"
+        ].some((phrase) => normalized.includes(phrase));
+        if (isNotIntentional) return "not-intentional";
+
+        const isResolved =
+          normalized.includes("resolved protest against") ||
+          normalized.includes("we have reviewed your protest and notified the member being protested of the outcome") ||
+          normalized.includes("the outcome of every protest is kept confidential");
+        if (isResolved) return "resolved";
+
+        const isPending =
+          normalized.includes("received protest against") ||
+          normalized.includes("the protest has been received") ||
+          normalized.includes("the stewards will be reviewing this information");
+        if (isPending) return "pending";
+
+        return "unknown";
+      }
+
+      function showProtestStatus(status) {
+        const result = protestStatuses[status];
+        statusResult.dataset.status = status;
+        statusResultMarker.textContent = result.marker;
+        statusResultTitle.textContent = result.title;
+        statusResultCopy.textContent = result.copy;
+        statusResultEvidence.textContent = result.evidence;
+        statusResult.classList.add("visible");
+      }
 
       function clearErrors() {
         for (const element of form.querySelectorAll("[aria-invalid='true']")) {
@@ -1040,6 +1243,34 @@
 
       form.addEventListener("input", handleFormEdit);
       form.addEventListener("change", handleFormEdit);
+
+      openStatusButton.addEventListener("click", () => {
+        statusDialog.showModal();
+        window.setTimeout(() => statusEmailInput.focus(), 0);
+      });
+
+      for (const closeButton of statusDialog.querySelectorAll("[data-close-status]")) {
+        closeButton.addEventListener("click", () => statusDialog.close());
+      }
+
+      statusDialog.addEventListener("click", (event) => {
+        if (event.target === statusDialog) statusDialog.close();
+      });
+
+      statusCheckerForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const emailContent = statusEmailInput.value.trim();
+        if (!emailContent) {
+          statusEmailInput.focus();
+          return;
+        }
+        showProtestStatus(classifyProtestStatus(emailContent));
+      });
+
+      statusEmailInput.addEventListener("input", () => {
+        statusResult.classList.remove("visible");
+        statusResult.removeAttribute("data-status");
+      });
 
       openGuideButton.addEventListener("click", () => {
         guideDialog.showModal();
