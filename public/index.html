@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="把中文赛道事故描述整理成清晰、客观的英文 iRacing Protest 描述。">
+    <title>ProtestMate — 中文 iRacing Protest 助手</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #080b10;
+        --surface: #10151d;
+        --surface-raised: #161d27;
+        --line: #293240;
+        --line-strong: #3b485b;
+        --text: #f5f7fa;
+        --muted: #9aa7b8;
+        --accent: #e6ff47;
+        --accent-strong: #cde800;
+        --accent-ink: #121600;
+        --danger: #ff7b7b;
+        --success: #78e8b3;
+        --radius: 18px;
+        --shadow: 0 24px 80px rgb(0 0 0 / 32%);
+      }
+
+      * { box-sizing: border-box; }
+
+      html { scroll-behavior: smooth; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 85% 8%, rgb(230 255 71 / 9%), transparent 25rem),
+          linear-gradient(135deg, transparent 0 48%, rgb(255 255 255 / 1.5%) 48% 49%, transparent 49% 100%),
+          var(--bg);
+        color: var(--text);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        line-height: 1.55;
+      }
+
+      button, input, select, textarea { font: inherit; }
+
+      a { color: inherit; }
+
+      .shell {
+        width: min(1120px, calc(100% - 32px));
+        margin: 0 auto;
+      }
+
+      .site-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 76px;
+        border-bottom: 1px solid rgb(255 255 255 / 8%);
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 11px;
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: -.02em;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 32px;
+        height: 32px;
+        place-items: center;
+        border-radius: 9px 3px 9px 3px;
+        background: var(--accent);
+        color: var(--accent-ink);
+        font-size: 13px;
+        font-style: italic;
+      }
+
+      .header-note {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      main { padding: 70px 0 80px; }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(250px, .75fr);
+        gap: 48px;
+        align-items: end;
+        margin-bottom: 48px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 18px;
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: .13em;
+        text-transform: uppercase;
+      }
+
+      .eyebrow::before {
+        width: 28px;
+        height: 2px;
+        background: var(--accent);
+        content: "";
+      }
+
+      h1 {
+        max-width: 760px;
+        margin: 0;
+        font-size: clamp(38px, 7vw, 72px);
+        line-height: 1.02;
+        letter-spacing: -.055em;
+      }
+
+      h1 span { color: var(--accent); }
+
+      .hero-copy {
+        margin: 0;
+        color: var(--muted);
+        font-size: 16px;
+      }
+
+      .hero-copy strong { color: var(--text); }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(310px, .65fr);
+        gap: 24px;
+        align-items: start;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: rgb(16 21 29 / 94%);
+        box-shadow: var(--shadow);
+      }
+
+      .form-card { padding: clamp(22px, 4vw, 38px); }
+
+      .section-heading {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0 0 24px;
+        font-size: 18px;
+      }
+
+      .step {
+        display: grid;
+        width: 28px;
+        height: 28px;
+        place-items: center;
+        border: 1px solid var(--line-strong);
+        border-radius: 50%;
+        color: var(--accent);
+        font-size: 12px;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
+      }
+
+      .field { min-width: 0; }
+      .field.full { grid-column: 1 / -1; }
+
+      label, legend {
+        display: block;
+        margin-bottom: 8px;
+        color: #dce2ea;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .optional {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      input, select, textarea {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 11px;
+        outline: none;
+        background: #0b0f15;
+        color: var(--text);
+        transition: border-color .18s, box-shadow .18s, background .18s;
+      }
+
+      input, select { min-height: 48px; padding: 0 14px; }
+      textarea { min-height: 118px; padding: 13px 14px; resize: vertical; }
+
+      input::placeholder, textarea::placeholder { color: #606c7b; }
+
+      input:focus, select:focus, textarea:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgb(230 255 71 / 12%);
+        background: #0d1219;
+      }
+
+      [aria-invalid="true"] { border-color: var(--danger); }
+
+      .field-hint {
+        margin: 7px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .field-error {
+        min-height: 18px;
+        margin: 5px 0 0;
+        color: var(--danger);
+        font-size: 12px;
+      }
+
+      fieldset {
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+
+      .checks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 9px;
+      }
+
+      .check {
+        position: relative;
+        margin: 0;
+        cursor: pointer;
+      }
+
+      .check input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+      }
+
+      .check span {
+        display: block;
+        padding: 8px 12px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 650;
+        transition: .18s ease;
+      }
+
+      .check input:focus-visible + span {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      .check input:checked + span {
+        border-color: var(--accent);
+        background: rgb(230 255 71 / 10%);
+        color: var(--accent);
+      }
+
+      .divider {
+        height: 1px;
+        margin: 30px 0;
+        background: var(--line);
+      }
+
+      .form-actions {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-top: 26px;
+      }
+
+      .primary-button, .copy-button {
+        border: 0;
+        border-radius: 11px;
+        cursor: pointer;
+        font-weight: 800;
+        transition: transform .18s, background .18s, opacity .18s;
+      }
+
+      .primary-button {
+        min-height: 52px;
+        padding: 0 24px;
+        background: var(--accent);
+        color: var(--accent-ink);
+      }
+
+      .primary-button:hover:not(:disabled), .copy-button:hover { transform: translateY(-1px); }
+      .primary-button:hover:not(:disabled) { background: #efff7c; }
+      .primary-button:disabled { cursor: wait; opacity: .55; }
+
+      .privacy {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .status-error {
+        display: none;
+        margin: 18px 0 0;
+        padding: 12px 14px;
+        border: 1px solid rgb(255 123 123 / 30%);
+        border-radius: 10px;
+        background: rgb(255 123 123 / 8%);
+        color: #ffb0b0;
+        font-size: 13px;
+      }
+
+      .status-error.visible { display: block; }
+
+      .side {
+        position: sticky;
+        top: 24px;
+        display: grid;
+        gap: 18px;
+      }
+
+      .result-card { overflow: hidden; }
+
+      .result-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .result-label {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+      }
+
+      .result-label::before {
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        margin-right: 9px;
+        border-radius: 50%;
+        background: var(--success);
+        content: "";
+      }
+
+      .copy-button {
+        padding: 7px 11px;
+        background: var(--surface-raised);
+        color: var(--text);
+        font-size: 12px;
+      }
+
+      .copy-button:disabled { cursor: default; opacity: .35; }
+
+      .result-body {
+        min-height: 250px;
+        padding: 24px 20px;
+      }
+
+      .result-placeholder {
+        margin: 0;
+        color: #6f7b8b;
+        font-size: 14px;
+      }
+
+      .result-text {
+        display: none;
+        margin: 0;
+        color: #edf1f6;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 14px;
+        line-height: 1.75;
+        white-space: pre-wrap;
+      }
+
+      .result-card.has-result .result-placeholder { display: none; }
+      .result-card.has-result .result-text { display: block; }
+
+      .notice { padding: 20px; box-shadow: none; }
+
+      .notice h2 {
+        margin: 0 0 10px;
+        font-size: 14px;
+      }
+
+      .notice p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .notice a {
+        color: var(--accent);
+        text-decoration-thickness: 1px;
+        text-underline-offset: 3px;
+      }
+
+      footer {
+        padding: 24px 0 36px;
+        border-top: 1px solid rgb(255 255 255 / 8%);
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      @media (max-width: 850px) {
+        .hero, .workspace { grid-template-columns: 1fr; }
+        .hero { gap: 22px; }
+        .side { position: static; grid-template-columns: 1fr; }
+        .result-body { min-height: 190px; }
+      }
+
+      @media (max-width: 580px) {
+        .shell { width: min(100% - 22px, 1120px); }
+        .site-header { min-height: 64px; }
+        .header-note { display: none; }
+        main { padding: 46px 0 60px; }
+        .hero { margin-bottom: 30px; }
+        .form-grid { grid-template-columns: 1fr; }
+        .field.full { grid-column: auto; }
+        .form-card { padding: 20px 16px; }
+        .form-actions { align-items: stretch; flex-direction: column; }
+        .primary-button { width: 100%; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="shell site-header">
+      <div class="brand"><span class="brand-mark">PM</span>ProtestMate</div>
+      <div class="header-note">中文事故描述 → 客观英文 Protest</div>
+    </header>
+
+    <main class="shell">
+      <section class="hero" aria-labelledby="page-title">
+        <div>
+          <div class="eyebrow">Race incident writer</div>
+          <h1 id="page-title">把事故说清楚，<br><span>不添油加醋。</span></h1>
+        </div>
+        <p class="hero-copy">
+          填写你在回放中看到的事实，ProtestMate 会整理成清晰、克制的英文描述。<strong>普通比赛事故不一定构成 Protest</strong>，请依据可观察的驾驶行为提交。
+        </p>
+      </section>
+
+      <div class="workspace">
+        <form id="protest-form" class="card form-card" novalidate>
+          <h2 class="section-heading"><span class="step">01</span>定位事件</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label for="incidentType">违规类型</label>
+              <select id="incidentType" name="incidentType" aria-describedby="incidentType-error" required>
+                <option value="">请选择</option>
+                <option value="intentional_wrecking">故意 / 报复性撞击</option>
+                <option value="blocking">Blocking</option>
+                <option value="unsafe_rejoin">Unsafe Rejoin</option>
+                <option value="reckless_erratic">鲁莽或异常驾驶</option>
+                <option value="other_on_track">其他赛道行为</option>
+              </select>
+              <p class="field-error" id="incidentType-error"></p>
+            </div>
+
+            <div class="field">
+              <label for="sessionType">场次类型</label>
+              <select id="sessionType" name="sessionType" aria-describedby="sessionType-error" required>
+                <option value="">请选择</option>
+                <option value="race">比赛 Race</option>
+                <option value="qualifying">排位 Qualifying</option>
+                <option value="practice">练习 Practice</option>
+              </select>
+              <p class="field-error" id="sessionType-error"></p>
+            </div>
+
+            <div class="field">
+              <label for="lapOrTime">圈数或事故时间</label>
+              <input id="lapOrTime" name="lapOrTime" maxlength="80" placeholder="例如：第 12 圈 / 剩余 08:32" aria-describedby="lapOrTime-error" required>
+              <p class="field-error" id="lapOrTime-error"></p>
+            </div>
+
+            <div class="field">
+              <label for="trackLocation">赛道位置</label>
+              <input id="trackLocation" name="trackLocation" maxlength="120" placeholder="例如：T3 出弯 / 主直道刹车区" aria-describedby="trackLocation-error" required>
+              <p class="field-error" id="trackLocation-error"></p>
+            </div>
+
+            <div class="field full">
+              <label for="otherCarNumber">对方车号 <span class="optional">可选</span></label>
+              <input id="otherCarNumber" name="otherCarNumber" maxlength="32" placeholder="例如：18">
+              <p class="field-error" id="otherCarNumber-error"></p>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+          <h2 class="section-heading"><span class="step">02</span>描述动作</h2>
+
+          <div class="form-grid">
+            <div class="field full">
+              <label for="observedAction">对方做了什么</label>
+              <textarea id="observedAction" name="observedAction" maxlength="1000" placeholder="只写回放中能观察到的动作，例如：对方从草地重返后直接横穿赛车线……" aria-describedby="observedAction-hint observedAction-error" required></textarea>
+              <p class="field-hint" id="observedAction-hint">避免只写“他故意撞我”，尽量描述方向、位置和连续动作。</p>
+              <p class="field-error" id="observedAction-error"></p>
+            </div>
+
+            <div class="field full">
+              <label for="userAction">我方当时的动作</label>
+              <textarea id="userAction" name="userAction" maxlength="800" placeholder="例如：我保持原有赛车线，看到对方重返后立即刹车并向左避让……" aria-describedby="userAction-error" required></textarea>
+              <p class="field-error" id="userAction-error"></p>
+            </div>
+
+            <fieldset class="field full" aria-describedby="outcomes-error">
+              <legend>事故后果 <span class="optional">可选，可多选</span></legend>
+              <div class="checks">
+                <label class="check"><input type="checkbox" name="outcomes" value="avoided_contact"><span>成功避让，无接触</span></label>
+                <label class="check"><input type="checkbox" name="outcomes" value="contact"><span>发生接触</span></label>
+                <label class="check"><input type="checkbox" name="outcomes" value="spin"><span>打转</span></label>
+                <label class="check"><input type="checkbox" name="outcomes" value="off_track"><span>冲出赛道</span></label>
+                <label class="check"><input type="checkbox" name="outcomes" value="damage"><span>车辆受损</span></label>
+                <label class="check"><input type="checkbox" name="outcomes" value="positions_lost"><span>损失名次</span></label>
+                <label class="check"><input type="checkbox" name="outcomes" value="retired"><span>退赛</span></label>
+                <label class="check"><input type="checkbox" name="outcomes" value="other"><span>其他</span></label>
+              </div>
+              <p class="field-error" id="outcomes-error"></p>
+            </fieldset>
+
+            <div class="field full">
+              <label for="additionalContext">补充信息 <span class="optional">可选</span></label>
+              <textarea id="additionalContext" name="additionalContext" maxlength="1200" placeholder="只补充有助于理解事件的事实。"></textarea>
+              <p class="field-error" id="additionalContext-error"></p>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button id="submit-button" class="primary-button" type="submit">生成英文描述 →</button>
+            <p class="privacy">内容仅用于当前生成请求，ProtestMate 不保存你的描述。</p>
+          </div>
+          <div id="status-error" class="status-error" role="alert"></div>
+        </form>
+
+        <aside class="side" aria-label="生成结果与提交提醒">
+          <section id="result-card" class="card result-card" aria-live="polite">
+            <div class="result-top">
+              <h2 class="result-label">English description</h2>
+              <button id="copy-button" class="copy-button" type="button" disabled>复制</button>
+            </div>
+            <div class="result-body">
+              <p class="result-placeholder">填写左侧事故信息后，英文描述会出现在这里。</p>
+              <p id="result-text" class="result-text"></p>
+            </div>
+          </section>
+
+          <section class="card notice">
+            <h2>提交前别忘了 Replay</h2>
+            <p>
+              iRacing 要求在事件后 7 天内提交，并附上裁剪到相关片段、大小不超过 30 MB 的 replay。
+              <a href="https://support.iracing.com/support/solutions/articles/31000133441-how-to-file-a-protest" target="_blank" rel="noreferrer">查看官方指南</a>
+            </p>
+          </section>
+        </aside>
+      </div>
+    </main>
+
+    <footer>
+      <div class="shell">ProtestMate 是独立工具，与 iRacing.com Motorsport Simulations, LLC 无隶属关系。</div>
+    </footer>
+
+    <script>
+      const form = document.querySelector("#protest-form");
+      const submitButton = document.querySelector("#submit-button");
+      const statusError = document.querySelector("#status-error");
+      const resultCard = document.querySelector("#result-card");
+      const resultText = document.querySelector("#result-text");
+      const copyButton = document.querySelector("#copy-button");
+
+      const allowedIncidentTypes = new Set([
+        "intentional_wrecking", "blocking", "unsafe_rejoin", "reckless_erratic", "other_on_track"
+      ]);
+      const allowedSessionTypes = new Set(["race", "qualifying", "practice"]);
+      const limits = {
+        lapOrTime: 80,
+        trackLocation: 120,
+        otherCarNumber: 32,
+        observedAction: 1000,
+        userAction: 800,
+        additionalContext: 1200
+      };
+      const requiredFields = ["incidentType", "sessionType", "lapOrTime", "trackLocation", "observedAction", "userAction"];
+
+      function clearErrors() {
+        for (const element of form.querySelectorAll("[aria-invalid='true']")) {
+          element.removeAttribute("aria-invalid");
+        }
+        for (const element of form.querySelectorAll(".field-error")) {
+          element.textContent = "";
+        }
+        statusError.textContent = "";
+        statusError.classList.remove("visible");
+      }
+
+      function showFieldError(field, message) {
+        const input = form.elements[field];
+        const error = document.querySelector(`#${field}-error`);
+        if (input && "setAttribute" in input) input.setAttribute("aria-invalid", "true");
+        if (error) error.textContent = message;
+      }
+
+      function showStatusError(message) {
+        statusError.textContent = message;
+        statusError.classList.add("visible");
+      }
+
+      function collectPayload() {
+        return {
+          incidentType: form.elements.incidentType.value,
+          sessionType: form.elements.sessionType.value,
+          lapOrTime: form.elements.lapOrTime.value.trim(),
+          trackLocation: form.elements.trackLocation.value.trim(),
+          otherCarNumber: form.elements.otherCarNumber.value.trim(),
+          observedAction: form.elements.observedAction.value.trim(),
+          userAction: form.elements.userAction.value.trim(),
+          outcomes: [...form.querySelectorAll("input[name='outcomes']:checked")].map((input) => input.value),
+          additionalContext: form.elements.additionalContext.value.trim()
+        };
+      }
+
+      function validate(payload) {
+        const errors = {};
+        for (const field of requiredFields) {
+          if (!payload[field]) errors[field] = "此项为必填。";
+        }
+        if (payload.incidentType && !allowedIncidentTypes.has(payload.incidentType)) {
+          errors.incidentType = "请选择有效的违规类型。";
+        }
+        if (payload.sessionType && !allowedSessionTypes.has(payload.sessionType)) {
+          errors.sessionType = "请选择有效的场次类型。";
+        }
+        for (const [field, max] of Object.entries(limits)) {
+          if (payload[field]?.length > max) errors[field] = `最多可填写 ${max} 个字符。`;
+        }
+        return errors;
+      }
+
+      function setLoading(loading) {
+        submitButton.disabled = loading;
+        submitButton.textContent = loading ? "正在整理…" : "生成英文描述 →";
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        clearErrors();
+
+        const payload = collectPayload();
+        const errors = validate(payload);
+        const invalidFields = Object.keys(errors);
+        if (invalidFields.length) {
+          for (const [field, message] of Object.entries(errors)) showFieldError(field, message);
+          form.elements[invalidFields[0]]?.focus();
+          return;
+        }
+
+        setLoading(true);
+        try {
+          const response = await fetch("/api/generate", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+          const body = await response.json().catch(() => null);
+          if (!response.ok) {
+            const message = body?.error?.message || "生成失败，请稍后重试。";
+            const fields = Array.isArray(body?.error?.fields) ? body.error.fields : [];
+            for (const field of fields) showFieldError(field, message);
+            showStatusError(message);
+            if (fields.length) form.elements[fields[0]]?.focus();
+            return;
+          }
+
+          if (typeof body?.description !== "string" || !body.description.trim()) {
+            showStatusError("生成结果格式异常，请稍后重试。");
+            return;
+          }
+
+          resultText.textContent = body.description.trim();
+          resultCard.classList.add("has-result");
+          copyButton.disabled = false;
+          resultCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        } catch {
+          showStatusError("网络连接失败，请检查连接后重试。");
+        } finally {
+          setLoading(false);
+        }
+      });
+
+      form.addEventListener("change", (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement) || target.name !== "outcomes" || !target.checked) return;
+
+        const outcomeInputs = [...form.querySelectorAll("input[name='outcomes']")];
+        if (target.value === "avoided_contact") {
+          for (const input of outcomeInputs) {
+            if (input !== target) input.checked = false;
+          }
+        } else {
+          const avoidedContact = outcomeInputs.find((input) => input.value === "avoided_contact");
+          if (avoidedContact) avoidedContact.checked = false;
+        }
+      });
+
+      copyButton.addEventListener("click", async () => {
+        if (!resultText.textContent) return;
+        try {
+          await navigator.clipboard.writeText(resultText.textContent);
+          copyButton.textContent = "已复制 ✓";
+        } catch {
+          const range = document.createRange();
+          range.selectNodeContents(resultText);
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+          copyButton.textContent = "请手动复制";
+        }
+        window.setTimeout(() => { copyButton.textContent = "复制"; }, 1800);
+      });
+    </script>
+  </body>
+</html>
