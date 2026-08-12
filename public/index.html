@@ -496,13 +496,16 @@
               <div class="checks">
                 <label class="check"><input type="checkbox" name="outcomes" value="avoided_contact"><span>成功避让，无接触</span></label>
                 <label class="check"><input type="checkbox" name="outcomes" value="contact"><span>发生接触</span></label>
-                <label class="check"><input type="checkbox" name="outcomes" value="spin"><span>打转</span></label>
+                <label class="check"><input type="checkbox" name="outcomes" value="spin"><span>失控或打转</span></label>
                 <label class="check"><input type="checkbox" name="outcomes" value="off_track"><span>冲出赛道</span></label>
+                <label class="check"><input type="checkbox" name="outcomes" value="time_lost"><span>明显减速或损失时间</span></label>
                 <label class="check"><input type="checkbox" name="outcomes" value="damage"><span>车辆受损</span></label>
+                <label class="check"><input type="checkbox" name="outcomes" value="pit_or_tow"><span>被迫进站或拖车维修</span></label>
                 <label class="check"><input type="checkbox" name="outcomes" value="positions_lost"><span>损失名次</span></label>
                 <label class="check"><input type="checkbox" name="outcomes" value="retired"><span>退赛</span></label>
                 <label class="check"><input type="checkbox" name="outcomes" value="other"><span>其他</span></label>
               </div>
+              <p class="field-hint">“无接触”可与冲出赛道、损失时间等后果同时选择；选择“其他”时，请在补充信息中说明。</p>
               <p class="field-error" id="outcomes-error"></p>
             </fieldset>
 
@@ -632,6 +635,9 @@
         for (const [field, max] of Object.entries(limits)) {
           if (payload[field]?.length > max) errors[field] = `最多可填写 ${max} 个字符。`;
         }
+        if (payload.outcomes.includes("other") && !payload.additionalContext) {
+          errors.additionalContext = "请选择“其他”后，在补充信息中说明具体后果。";
+        }
         return errors;
       }
 
@@ -704,13 +710,10 @@
         if (!(target instanceof HTMLInputElement) || target.name !== "outcomes" || !target.checked) return;
 
         const outcomeInputs = [...form.querySelectorAll("input[name='outcomes']")];
-        if (target.value === "avoided_contact") {
-          for (const input of outcomeInputs) {
-            if (input !== target) input.checked = false;
-          }
-        } else {
-          const avoidedContact = outcomeInputs.find((input) => input.value === "avoided_contact");
-          if (avoidedContact) avoidedContact.checked = false;
+        if (target.value === "avoided_contact" || target.value === "contact") {
+          const conflictingValue = target.value === "avoided_contact" ? "contact" : "avoided_contact";
+          const conflictingInput = outcomeInputs.find((input) => input.value === conflictingValue);
+          if (conflictingInput) conflictingInput.checked = false;
         }
       });
 

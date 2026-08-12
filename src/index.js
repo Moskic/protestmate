@@ -22,7 +22,9 @@ const OUTCOMES = new Set([
   "contact",
   "spin",
   "off_track",
+  "time_lost",
   "damage",
+  "pit_or_tow",
   "positions_lost",
   "retired",
   "other",
@@ -43,11 +45,13 @@ const SESSION_LABELS = {
 };
 
 const OUTCOME_LABELS = {
-  avoided_contact: "Avoided contact successfully",
+  avoided_contact: "Avoided contact",
   contact: "Contact",
-  spin: "Spin",
-  off_track: "Forced off track",
+  spin: "Loss of control or spin",
+  off_track: "Went off track",
+  time_lost: "Significant time lost",
   damage: "Vehicle damage",
+  pit_or_tow: "Required a pit stop or tow for repairs",
   positions_lost: "Positions lost",
   retired: "Retirement",
   other: "Other consequence described in the additional context",
@@ -131,12 +135,16 @@ function validatePayload(payload) {
     payload.outcomes.length > OUTCOMES.size ||
     payload.outcomes.some((item) => typeof item !== "string" || !OUTCOMES.has(item)) ||
     new Set(payload.outcomes).size !== payload.outcomes.length ||
-    (payload.outcomes.includes("avoided_contact") && payload.outcomes.length > 1)
+    (payload.outcomes.includes("avoided_contact") && payload.outcomes.includes("contact"))
   ) {
     fields.push("outcomes");
     value.outcomes = [];
   } else {
     value.outcomes = payload.outcomes;
+  }
+
+  if (value.outcomes.includes("other") && !value.additionalContext) {
+    fields.push("additionalContext");
   }
 
   return { fields: [...new Set(fields)], value };
