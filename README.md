@@ -1,13 +1,13 @@
 # ProtestMate
 
-ProtestMate 帮助中文 iRacing 玩家把赛道事故整理成清晰、客观、可直接提交的英文 Protest 描述。
+ProtestMate 帮助中文 iRacing 玩家把赛道事故中的事实、判断与感受整理成可直接提交的英文 Protest 描述。
 
 ## 技术栈
 
 - 原生 HTML、CSS、JavaScript
 - Cloudflare Workers Static Assets
 - Cloudflare Worker
-- Cloudflare Workers AI（`@cf/qwen/qwen3-30b-a3b-fp8`）
+- Cloudflare Workers AI（`@cf/google/gemma-4-26b-a4b-it`）
 - Cloudflare Rate Limiting
 
 项目不使用数据库或登录系统，也不会主动保存用户提交的事故内容。
