@@ -371,6 +371,131 @@
       .notice strong { color: var(--text); }
       .notice a { color: var(--accent-dark); text-underline-offset: 3px; }
 
+      .inline-link {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: var(--accent-dark);
+        cursor: pointer;
+        font: inherit;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      .inline-link:focus-visible, .dialog-close:focus-visible, .guide-image-button:focus-visible {
+        outline: 2px solid var(--track);
+        outline-offset: 3px;
+      }
+
+      dialog {
+        padding: 0;
+        border: 0;
+        color: var(--text);
+      }
+
+      dialog::backdrop { background: rgb(23 23 25 / 68%); backdrop-filter: blur(2px); }
+
+      .guide-dialog {
+        width: min(1100px, calc(100% - 40px));
+        max-height: min(92vh, 1000px);
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--surface);
+        box-shadow: 0 24px 70px rgb(0 0 0 / 24%);
+      }
+
+      .guide-dialog[open] { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+
+      .guide-header, .guide-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 22px;
+        background: var(--surface);
+      }
+
+      .guide-header { border-bottom: 1px solid var(--line); }
+      .guide-footer { border-top: 1px solid var(--line); }
+      .guide-header h2 { margin: 0; font-size: 1.24rem; letter-spacing: -.02em; }
+
+      .dialog-close {
+        flex: 0 0 auto;
+        min-height: 36px;
+        padding: 7px 11px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+        color: var(--text);
+        cursor: pointer;
+        font-size: .78rem;
+        font-weight: 650;
+      }
+
+      .dialog-close:hover { background: var(--surface-hover); }
+      .guide-body { padding: 22px; overflow-y: auto; overscroll-behavior: contain; }
+
+      .guide-summary {
+        margin: 0 0 22px;
+        padding: 14px 16px;
+        border-left: 3px solid var(--accent);
+        background: #fff7f7;
+        color: var(--muted);
+        font-size: .92rem;
+        line-height: 1.7;
+      }
+
+      .guide-summary strong { color: var(--text); }
+      .guide-summary ul { margin: 8px 0 0; padding-left: 20px; }
+
+      .guide-step + .guide-step { margin-top: 28px; padding-top: 28px; border-top: 1px solid var(--line); }
+
+      .guide-step-heading {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin-bottom: 8px;
+      }
+
+      .guide-step-number { color: var(--accent); font-size: .8rem; font-weight: 750; letter-spacing: .08em; }
+      .guide-step h3 { margin: 0; font-size: 1.12rem; letter-spacing: -.015em; }
+      .guide-step > p { margin: 0 0 14px; color: var(--muted); font-size: .92rem; line-height: 1.75; }
+
+      .guide-figure { margin: 14px 0 0; }
+
+      .guide-image-button {
+        display: block;
+        width: fit-content;
+        max-width: min(100%, 820px);
+        margin: 0 auto;
+        padding: 0;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        background: var(--field);
+        cursor: zoom-in;
+      }
+
+      .guide-image-button img { display: block; max-width: 100%; height: auto; }
+      .guide-figure figcaption { max-width: 820px; margin: 8px auto 0; color: var(--muted); font-size: .8rem; line-height: 1.55; }
+
+      .guide-source { margin: 0; color: var(--muted); font-size: .8rem; line-height: 1.6; }
+      .guide-source a { color: var(--accent-dark); text-underline-offset: 3px; }
+
+      .image-dialog {
+        width: min(1200px, calc(100% - 24px));
+        max-height: calc(100vh - 24px);
+        overflow: auto;
+        border-radius: 10px;
+        background: var(--track);
+        box-shadow: 0 24px 70px rgb(0 0 0 / 32%);
+      }
+
+      .image-dialog img { display: block; width: 100%; height: auto; }
+      .image-dialog .dialog-close { position: fixed; top: 22px; right: 22px; z-index: 1; box-shadow: 0 2px 12px rgb(0 0 0 / 20%); }
+
       footer {
         display: flex;
         flex-wrap: wrap;
@@ -400,6 +525,12 @@
         .form-card { padding: 20px; }
         .form-actions { align-items: stretch; flex-direction: column; }
         .primary-button { width: 100%; }
+        .guide-dialog { width: 100%; max-width: none; max-height: 100%; height: 100%; border-radius: 0; }
+        .guide-header, .guide-footer { padding: 15px 16px; }
+        .guide-body { padding: 18px 16px; }
+        .guide-footer { align-items: stretch; flex-direction: column; }
+        .guide-footer .dialog-close { width: 100%; }
+        .image-dialog { width: 100%; max-width: none; max-height: 100%; height: 100%; border-radius: 0; }
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -432,7 +563,7 @@
         <p>
           <strong>赛道类 Protest 必须附 Replay，否则不会受理。</strong>
           请将文件裁剪到相关事件片段并控制在 30 MB 以内。场次结束 30 分钟后方可提交，且须在事件发生后 7 天内完成。
-          <a href="https://support.iracing.com/support/solutions/articles/31000133441-how-to-file-a-protest" target="_blank" rel="noreferrer">查看官方指南</a>
+          <button id="open-protest-guide" class="inline-link" type="button">查看提交步骤</button>
         </p>
         <p>
           <strong>普通比赛事故不一定构成 Protest。</strong>
@@ -560,6 +691,103 @@
       </div>
     </main>
 
+    <dialog id="protest-guide" class="guide-dialog" aria-labelledby="protest-guide-title">
+      <header class="guide-header">
+        <h2 id="protest-guide-title">如何提交 iRacing Protest</h2>
+        <button class="dialog-close" type="button" data-close-guide aria-label="关闭提交步骤">关闭</button>
+      </header>
+
+      <div class="guide-body">
+        <aside class="guide-summary" aria-label="提交前须知">
+          <strong>提交前须知</strong>
+          <ul>
+            <li>场次结束后等待 30 分钟，并在事件发生后 7 天内提交。</li>
+            <li>赛道类 Protest 必须附 Replay；文件不得超过 30 MB，请只保留相关片段。</li>
+            <li>应通过 iRacing UI 或 iRacingWeb 的正式表单提交，邮件或私信不会被受理。</li>
+          </ul>
+        </aside>
+
+        <section class="guide-step" aria-labelledby="guide-step-1">
+          <div class="guide-step-heading">
+            <span class="guide-step-number">STEP 01</span>
+            <h3 id="guide-step-1">打开 Protest 表单</h3>
+          </div>
+          <p>可以从 Help 页面点击 <strong>File a Protest</strong>，也可以在 <strong>Results &amp; Stats</strong> 中找到对应场次并点击 <strong>View Results</strong>。</p>
+
+          <figure class="guide-figure">
+            <button class="guide-image-button" type="button" data-guide-image="assets/protest-guide/01-file-protest-entry.png" data-guide-alt="iRacing Help 页面中 File a Protest 入口">
+              <img src="assets/protest-guide/01-file-protest-entry.png" width="1668" height="832" loading="lazy" alt="iRacing Help 页面中 File a Protest 入口">
+            </button>
+            <figcaption>入口一：Help → File a Protest。点击图片可放大。</figcaption>
+          </figure>
+
+          <figure class="guide-figure">
+            <button class="guide-image-button" type="button" data-guide-image="assets/protest-guide/02-view-results.png" data-guide-alt="iRacing Results and Stats 页面中的 View Results 按钮">
+              <img src="assets/protest-guide/02-view-results.png" width="1821" height="835" loading="lazy" alt="iRacing Results and Stats 页面中的 View Results 按钮">
+            </button>
+            <figcaption>入口二：Results &amp; Stats → View Results。</figcaption>
+          </figure>
+
+          <figure class="guide-figure">
+            <button class="guide-image-button" type="button" data-guide-image="assets/protest-guide/03-results-page.png" data-guide-alt="iRacing 比赛结果窗口右下角的 File Protest 按钮">
+              <img src="assets/protest-guide/03-results-page.png" width="1533" height="770" loading="lazy" alt="iRacing 比赛结果窗口右下角的 File Protest 按钮">
+            </button>
+            <figcaption>打开比赛结果后，点击右下角的 File Protest。</figcaption>
+          </figure>
+        </section>
+
+        <section class="guide-step" aria-labelledby="guide-step-2">
+          <div class="guide-step-heading">
+            <span class="guide-step-number">STEP 02</span>
+            <h3 id="guide-step-2">选择违规和车手</h3>
+          </div>
+          <p>选择你认为发生的违规类型、对应场次和被投诉车手。请确认选择正确，不要仅凭事故结果推断故意或责任。</p>
+
+          <figure class="guide-figure">
+            <button class="guide-image-button" type="button" data-guide-image="assets/protest-guide/04-select-violation.png" data-guide-alt="iRacing Protest 表单中的违规类型、场次和车手选择区域">
+              <img src="assets/protest-guide/04-select-violation.png" width="963" height="662" loading="lazy" alt="iRacing Protest 表单中的违规类型、场次和车手选择区域">
+            </button>
+            <figcaption>依次选择违规类型、场次 ID 和车手名称。</figcaption>
+          </figure>
+        </section>
+
+        <section class="guide-step" aria-labelledby="guide-step-3">
+          <div class="guide-step-heading">
+            <span class="guide-step-number">STEP 03</span>
+            <h3 id="guide-step-3">填写描述并上传 Replay</h3>
+          </div>
+          <p>把 ProtestMate 生成的英文描述粘贴到 <strong>Complaint / Description</strong>，然后上传裁剪好的 Replay。每个附件上限为 30 MB，确认内容和附件无误后再提交。</p>
+
+          <figure class="guide-figure">
+            <button class="guide-image-button" type="button" data-guide-image="assets/protest-guide/05-protest-form.png" data-guide-alt="iRacing Protest 表单的描述输入和提交区域">
+              <img src="assets/protest-guide/05-protest-form.png" width="965" height="766" loading="lazy" alt="iRacing Protest 表单的描述输入和提交区域">
+            </button>
+            <figcaption>填写 Complaint / Description，并核对表单内容。</figcaption>
+          </figure>
+
+          <figure class="guide-figure">
+            <button class="guide-image-button" type="button" data-guide-image="assets/protest-guide/06-upload-replay.png" data-guide-alt="iRacing Protest 表单的 Replay 文件上传区域">
+              <img src="assets/protest-guide/06-upload-replay.png" width="493" height="636" loading="lazy" alt="iRacing Protest 表单的 Replay 文件上传区域">
+            </button>
+            <figcaption>点击 Choose a File 上传 Replay；最多三个附件，每个不超过 30 MB。</figcaption>
+          </figure>
+        </section>
+      </div>
+
+      <footer class="guide-footer">
+        <p class="guide-source">
+          本页为 ProtestMate 根据 iRacing 官方指南整理的非官方中文说明，截图版权归 iRacing 所有；如有差异，请以
+          <a href="https://support.iracing.com/support/solutions/articles/31000133441-how-to-file-a-protest" target="_blank" rel="noreferrer">官方原文</a>为准。
+        </p>
+        <button class="dialog-close" type="button" data-close-guide>我知道了</button>
+      </footer>
+    </dialog>
+
+    <dialog id="guide-image-dialog" class="image-dialog" aria-label="查看提交步骤大图">
+      <button class="dialog-close" type="button" data-close-image aria-label="关闭大图">关闭</button>
+      <img id="guide-image-full" alt="">
+    </dialog>
+
     <footer class="shell" aria-label="Site footer">
       <strong>ProtestMate</strong>
       <span aria-hidden="true">/</span>
@@ -575,6 +803,10 @@
       const resultCard = document.querySelector("#result-card");
       const resultText = document.querySelector("#result-text");
       const copyButton = document.querySelector("#copy-button");
+      const openGuideButton = document.querySelector("#open-protest-guide");
+      const guideDialog = document.querySelector("#protest-guide");
+      const imageDialog = document.querySelector("#guide-image-dialog");
+      const fullGuideImage = document.querySelector("#guide-image-full");
       const requestTimeoutMs = 30_000;
 
       const allowedIncidentTypes = new Set([
@@ -735,6 +967,35 @@
           const conflictingInput = outcomeInputs.find((input) => input.value === conflictingValue);
           if (conflictingInput) conflictingInput.checked = false;
         }
+      });
+
+      openGuideButton.addEventListener("click", () => {
+        guideDialog.showModal();
+      });
+
+      for (const closeButton of guideDialog.querySelectorAll("[data-close-guide]")) {
+        closeButton.addEventListener("click", () => guideDialog.close());
+      }
+
+      guideDialog.addEventListener("click", (event) => {
+        if (event.target === guideDialog) guideDialog.close();
+      });
+
+      for (const imageButton of guideDialog.querySelectorAll("[data-guide-image]")) {
+        imageButton.addEventListener("click", () => {
+          fullGuideImage.src = imageButton.dataset.guideImage;
+          fullGuideImage.alt = imageButton.dataset.guideAlt;
+          imageDialog.showModal();
+        });
+      }
+
+      imageDialog.querySelector("[data-close-image]").addEventListener("click", () => imageDialog.close());
+      imageDialog.addEventListener("click", (event) => {
+        if (event.target === imageDialog) imageDialog.close();
+      });
+      imageDialog.addEventListener("close", () => {
+        fullGuideImage.removeAttribute("src");
+        fullGuideImage.alt = "";
       });
 
       copyButton.addEventListener("click", async () => {

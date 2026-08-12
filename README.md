@@ -39,4 +39,6 @@ npm run deploy
 
 ProtestMate 只生成英文描述，不会代替用户提交 Protest 或上传 replay。请遵循 [iRacing 官方 Protest 指南](https://support.iracing.com/support/solutions/articles/31000133441-how-to-file-a-protest)。
 
+`public/assets/protest-guide/` 中的操作截图来自上述 iRacing 官方支持指南，仅用于说明 Protest 的提交步骤；截图版权归 iRacing.com Motorsport Simulations, LLC 所有。
+
 本项目与 iRacing.com Motorsport Simulations, LLC 无隶属关系。
