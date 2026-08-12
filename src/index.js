@@ -1,5 +1,4 @@
 const MAX_BODY_BYTES = 10 * 1024;
-const TARGET_MIN_DESCRIPTION_WORDS = 250;
 const MAX_DESCRIPTION_WORDS = 300;
 
 const JSON_HEADERS = {
@@ -58,11 +57,12 @@ const OUTCOME_LABELS = {
 };
 
 const FIELD_RULES = {
-  lapOrTime: { required: true, max: 80 },
-  trackLocation: { required: true, max: 120 },
+  protestedDriverName: { required: true, max: 100 },
+  lapOrTime: { required: false, max: 80 },
+  trackLocation: { required: false, max: 120 },
   otherCarNumber: { required: false, max: 32 },
   observedAction: { required: true, max: 1000 },
-  userAction: { required: true, max: 800 },
+  userAction: { required: false, max: 800 },
   additionalContext: { required: false, max: 1200 },
 };
 
@@ -89,7 +89,7 @@ function aiOutputError() {
 
 function validatePayload(payload) {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-    return { fields: ["incidentType", "sessionType", "lapOrTime", "trackLocation", "observedAction", "userAction"] };
+    return { fields: ["incidentType", "protestedDriverName", "observedAction"] };
   }
 
   const fields = [];
@@ -101,8 +101,11 @@ function validatePayload(payload) {
     value.incidentType = payload.incidentType;
   }
 
-  if (typeof payload.sessionType !== "string" || !SESSION_TYPES.has(payload.sessionType)) {
+  if (payload.sessionType === undefined || payload.sessionType === null || payload.sessionType === "") {
+    value.sessionType = "";
+  } else if (typeof payload.sessionType !== "string" || !SESSION_TYPES.has(payload.sessionType)) {
     fields.push("sessionType");
+    value.sessionType = "";
   } else {
     value.sessionType = payload.sessionType;
   }
@@ -153,15 +156,24 @@ function validatePayload(payload) {
 function buildMessages(data) {
   const incidentData = {
     violation_type: INCIDENT_LABELS[data.incidentType],
-    session_type: SESSION_LABELS[data.sessionType],
-    lap_or_session_time: data.lapOrTime,
-    track_location: data.trackLocation,
-    observed_action_by_other_driver: data.observedAction,
-    reporting_driver_action: data.userAction,
+    protested_driver_name: data.protestedDriverName,
+    incident_description: data.observedAction,
   };
 
+  if (data.sessionType) {
+    incidentData.session_type = SESSION_LABELS[data.sessionType];
+  }
+  if (data.lapOrTime) {
+    incidentData.lap_or_session_time = data.lapOrTime;
+  }
+  if (data.trackLocation) {
+    incidentData.track_location = data.trackLocation;
+  }
   if (data.otherCarNumber) {
     incidentData.other_car_number = data.otherCarNumber;
+  }
+  if (data.userAction) {
+    incidentData.reporting_driver_action = data.userAction;
   }
   if (data.outcomes.length) {
     incidentData.outcomes = data.outcomes.map((item) => OUTCOME_LABELS[item]);
@@ -174,7 +186,7 @@ function buildMessages(data) {
     {
       role: "system",
       content:
-        `You edit Chinese sim-racing incident notes into a clear, natural English description suitable for an iRacing protest. The paragraph should sound like it was written by a real person, not a form letter or a mechanical summary. Follow every rule below.\n1. Use only supplied observable facts. Do not add intent, conclusions, or evaluative adjectives such as safe, unsafe, deliberate, or intentional unless that exact claim is supplied as an observable fact. Translate actions directly: maintained distance must not become maintained a safe distance.\n2. Always include the supplied session type, lap or session time, and track location in natural prose.\n3. Write from the reporting driver's first-person perspective using I and my. Never use third-person labels such as the reporting driver.\n4. Treat violation_type only as classification metadata. Never use it to infer intent, conclude that a rule was violated, or characterize an action as complying with or violating a procedure. For example, slowed under yellow must not become followed the yellow flag procedure.\n5. Mention optional information only when its key exists in the JSON. Never mention missing information and never write placeholders such as no outcomes were reported or the car number is unavailable.\n6. Never include the reporter's uncertainty, question, or opinion about whether the conduct is protestable, even if it appears in additional_context. Describe only the incident itself.\n7. Preserve relevant emotions explicitly expressed by the reporter, such as concern, surprise, or frustration, and weave them naturally into the first-person account. Do not invent emotions, exaggerate them, or use insults, hostility, or dramatic language.\n8. Develop the supplied facts in a clear chronological order, explaining the sequence, positions, movements, my response, and the stated outcome where those details are provided. Use natural transitions and varied sentence structure while remaining factual and avoiding repetition or padding.\n9. Return only one final English paragraph with no title, bullets, labels, or explanation. Aim for ${TARGET_MIN_DESCRIPTION_WORDS} to ${MAX_DESCRIPTION_WORDS} English words, but prioritize factual accuracy and avoid padding when the supplied facts do not support that length. Never exceed ${MAX_DESCRIPTION_WORDS} English words.`,
+        `You edit Chinese sim-racing incident notes into a clear, natural English description suitable for an iRacing protest. The paragraph should sound like it was written by a real person, not a form letter or a mechanical summary. Follow every rule below.\n1. Use only supplied observable facts. Do not add intent, conclusions, or evaluative adjectives such as safe, unsafe, deliberate, or intentional unless that exact claim is supplied as an observable fact. Translate actions directly: maintained distance must not become maintained a safe distance.\n2. Identify the protested driver naturally by the supplied protested_driver_name at least once.\n3. Write from the reporting driver's first-person perspective using I and my. Never use third-person labels such as the reporting driver.\n4. Treat violation_type only as classification metadata. Never use it to infer intent, conclude that a rule was violated, or characterize an action as complying with or violating a procedure. For example, slowed under yellow must not become followed the yellow flag procedure.\n5. Mention optional information only when its key exists in the JSON. Never mention missing information and never write placeholders such as the session type was not provided or the car number is unavailable.\n6. Never include the reporter's uncertainty, question, or opinion about whether the conduct is protestable, even if it appears in additional_context. Describe only the incident itself.\n7. Preserve relevant emotions explicitly expressed by the reporter, such as concern, surprise, or frustration, and weave them naturally into the first-person account. Do not invent emotions, exaggerate them, or use insults, hostility, or dramatic language.\n8. Develop the supplied facts in a clear chronological order, explaining the sequence, positions, movements, my response, and the stated outcome where those details are provided. Use natural transitions and varied sentence structure while remaining factual and avoiding repetition or padding.\n9. Return only one final English paragraph with no title, bullets, labels, or explanation. Aim for 80 to ${MAX_DESCRIPTION_WORDS} English words when the supplied facts support that length. Prioritize factual accuracy and concision over reaching 80 words. Never add, repeat, or infer details to meet a word target. Never exceed ${MAX_DESCRIPTION_WORDS} English words.`,
     },
     {
       role: "user",
