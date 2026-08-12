@@ -33,7 +33,9 @@ npm run check
 npm run deploy
 ```
 
-`check` 只执行 Cloudflare 部署 dry-run；`deploy` 会实际部署 Worker。
+`check` 执行 Cloudflare 部署 dry-run；`deploy` 会实际部署 Worker。
+
+业务字段、长度限制和枚举统一维护在 `public/assets/shared/protest-schema.js`。修改表单规则时只编辑该 schema；浏览器表单和 Worker 校验都会使用它。
 
 ## 提醒
 
