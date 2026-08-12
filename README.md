@@ -24,6 +24,8 @@ npm run dev
 
 Workers AI 在本地开发时仍会访问 Cloudflare 远程服务，并可能产生用量或费用。
 
+Rate Limiting namespace `80731427` 专用于 ProtestMate；同一 Cloudflare 账户下的其他 Worker 不应复用该 ID。
+
 ## 检查与部署
 
 ```bash

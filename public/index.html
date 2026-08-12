@@ -549,6 +549,7 @@
       const resultCard = document.querySelector("#result-card");
       const resultText = document.querySelector("#result-text");
       const copyButton = document.querySelector("#copy-button");
+      const requestTimeoutMs = 30_000;
 
       const allowedIncidentTypes = new Set([
         "intentional_wrecking", "blocking", "unsafe_rejoin", "reckless_erratic", "other_on_track"
@@ -593,6 +594,13 @@
       function showStatusError(message) {
         statusError.textContent = message;
         statusError.classList.add("visible");
+      }
+
+      function resetResult() {
+        resultText.textContent = "";
+        resultCard.classList.remove("has-result");
+        copyButton.disabled = true;
+        copyButton.textContent = "复制";
       }
 
       function collectPayload() {
@@ -644,12 +652,16 @@
           return;
         }
 
+        resetResult();
         setLoading(true);
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(() => controller.abort(), requestTimeoutMs);
         try {
           const response = await fetch("/api/generate", {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            signal: controller.signal
           });
 
           const body = await response.json().catch(() => null);
@@ -671,9 +683,14 @@
           resultCard.classList.add("has-result");
           copyButton.disabled = false;
           resultCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
-        } catch {
-          showStatusError("网络连接失败，请检查连接后重试。");
+        } catch (error) {
+          if (error instanceof DOMException && error.name === "AbortError") {
+            showStatusError("生成超时，请稍后重试。");
+          } else {
+            showStatusError("网络连接失败，请检查连接后重试。");
+          }
         } finally {
+          window.clearTimeout(timeoutId);
           setLoading(false);
         }
       });

@@ -177,6 +177,20 @@ function countEnglishWords(content) {
   return content.match(/\b[A-Za-z]+(?:['’-][A-Za-z]+)*\b/g)?.length ?? 0;
 }
 
+function isValidAiContent(content) {
+  if (typeof content !== "string" || !content.trim()) return false;
+
+  const trimmed = content.trim();
+  if (/<\/?think>/i.test(trimmed)) return false;
+  if (/[\r\n]/.test(trimmed)) return false;
+  if (/```|^\s{0,3}#{1,6}\s|^\s*(?:[-*+]\s|\d+[.)]\s)|\*\*|__/.test(trimmed)) return false;
+
+  const wordCount = countEnglishWords(trimmed);
+  if (wordCount === 0 || wordCount > 300) return false;
+
+  return /[.!?](?:["')\]]*)$/.test(trimmed);
+}
+
 async function handleGenerate(request, env) {
   if (request.method !== "POST") {
     return errorResponse(
@@ -254,16 +268,9 @@ async function handleGenerate(request, env) {
     );
   }
 
-  const content = result?.choices?.[0]?.message?.content;
-  if (typeof content !== "string" || !content.trim()) {
-    return aiOutputError();
-  }
-
-  if (/<\/?think>/i.test(content)) {
-    return aiOutputError();
-  }
-
-  if (countEnglishWords(content) > 300) {
+  const choice = result?.choices?.[0];
+  const content = choice?.message?.content;
+  if (choice?.finish_reason !== "stop" || !isValidAiContent(content)) {
     return aiOutputError();
   }
 
