@@ -1,6 +1,6 @@
 # ProtestMate
 
-ProtestMate 帮助中文 iRacing 玩家把赛道事故中的事实、判断与感受整理成可直接提交的英文 Protest 描述。
+ProtestMate 帮助中文 iRacing 玩家把赛道事故中的事实、判断与感受整理成可直接提交的英文申诉描述。
 
 ## 技术栈
 
@@ -54,10 +54,10 @@ npm run deploy
 
 `check` 执行 Cloudflare 部署 dry-run；`deploy` 会实际部署 Worker。
 
-业务字段、长度限制和枚举统一维护在 `public/assets/shared/protest-schema.js`。修改表单规则时只编辑该 schema；浏览器表单和 Worker 校验都会使用它。
+业务字段、长度限制和枚举统一维护在 `public/assets/shared/-schema.js`。修改表单规则时只编辑该 schema；浏览器表单和 Worker 校验都会使用它。
 
 ## 提醒
 
-ProtestMate 只生成英文描述，不会代替用户提交 Protest 或上传 replay。请遵循 [iRacing 官方 Protest 指南](https://support.iracing.com/support/solutions/articles/31000133441-how-to-file-a-protest)。
+ProtestMate 只生成英文描述，不会代替用户提交申诉或上传 replay。请遵循 [iRacing 官方申诉指南](https://support.iracing.com/support/solutions/articles/31000133441-how-to-file-a-protest)。
 
 本项目与 iRacing.com Motorsport Simulations, LLC 无隶属关系。
