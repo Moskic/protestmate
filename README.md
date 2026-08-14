@@ -26,6 +26,25 @@ Workers AI 在本地开发时仍会访问 Cloudflare 远程服务，并可能产
 
 Rate Limiting namespace `80731427` 专用于 ProtestMate；同一 Cloudflare 账户下的其他 Worker 不应复用该 ID。
 
+## Workers AI 多账号回落
+
+部署 Worker 所在账号继续通过 `AI` binding 作为主账号。可以在 Cloudflare Dashboard 的 Worker **Settings > Variables and Secrets** 中添加任意数量的备用账号；每个账号使用一个 Secret，名称格式为 `WORKERS_AI_FALLBACK_*`，例如：
+
+```text
+WORKERS_AI_FALLBACK_010
+WORKERS_AI_FALLBACK_020
+```
+
+Secret 的值为单个账号的 JSON：
+
+```json
+{"accountId":"Cloudflare Account ID","apiToken":"Workers AI API Token"}
+```
+
+变量名按字典序决定切换顺序，建议使用 `010`、`020`、`030` 这样的编号。只有当前账号返回额度耗尽错误 `3036` 时才会尝试下一个账号；其他上游错误不会触发切换。额度耗尽状态会在当前 Worker 实例中缓存到下一个 UTC 日期。
+
+本地测试备用账号时，将相同的 Secret 写入不会提交到 Git 的 `.dev.vars` 文件。
+
 ## 检查与部署
 
 ```bash

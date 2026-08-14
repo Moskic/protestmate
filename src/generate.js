@@ -3,6 +3,10 @@ import { OUTCOMES, SESSION_TYPES } from "../public/assets/shared/protest-schema.
 export const MAX_DESCRIPTION_WORDS = 300;
 export const AI_MODEL = "@cf/google/gemma-4-26b-a4b-it";
 
+const FALLBACK_ACCOUNT_PREFIX = "WORKERS_AI_FALLBACK_";
+const PRIMARY_ACCOUNT_KEY = "AI";
+const exhaustedAccounts = new Map();
+
 const SYSTEM_PROMPT = `Turn the supplied sim-racing incident JSON into one natural English paragraph for an iRacing protest.
 - Include every supplied detail once, including additional_context. Preserve explicit assessments, emotions, and hypothetical risks with their certainty; structured outcomes are completed results. Never add or infer information.
 - Field roles: protested_driver_action is the protested driver's action; my_action is mine; protested_driver_car_number is the protested driver's car number.
@@ -49,18 +53,154 @@ export function isValidAiContent(content) {
   return /[.!?](?:["')\]]*)$/.test(trimmed);
 }
 
-export async function generateDescription(data, ai) {
-  const result = await ai.run(AI_MODEL, {
+function buildAiInput(data) {
+  return {
     messages: buildMessages(data),
     temperature: 0,
     max_completion_tokens: 650,
     chat_template_kwargs: { enable_thinking: false },
     stream: false,
-  });
+  };
+}
+
+function nextUtcDay() {
+  const now = new Date();
+  return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
+}
+
+function isAccountExhausted(key) {
+  const exhaustedUntil = exhaustedAccounts.get(key) ?? 0;
+  if (exhaustedUntil > Date.now()) return true;
+  exhaustedAccounts.delete(key);
+  return false;
+}
+
+function markAccountExhausted(key) {
+  exhaustedAccounts.set(key, nextUtcDay());
+}
+
+function isAccountLimited(status, payload) {
+  return status === 429 && payload?.errors?.some(({ code }) => Number(code) === 3036);
+}
+
+function isThrownAccountLimited(error) {
+  return Number(error?.code ?? error?.cause?.code) === 3036;
+}
+
+async function readJson(response) {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+function unwrapResult(payload) {
+  return payload?.success === true && payload.result ? payload.result : payload;
+}
+
+function getFallbackAccounts(env) {
+  return Object.entries(env)
+    .filter(([key, value]) => key.startsWith(FALLBACK_ACCOUNT_PREFIX) && typeof value === "string")
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([key, value]) => {
+      let account;
+      try {
+        account = JSON.parse(value);
+      } catch {
+        throw new Error(`Invalid Workers AI fallback configuration: ${key}`);
+      }
+
+      if (
+        !account ||
+        Array.isArray(account) ||
+        typeof account.accountId !== "string" ||
+        !account.accountId.trim() ||
+        typeof account.apiToken !== "string" ||
+        !account.apiToken.trim()
+      ) {
+        throw new Error(`Invalid Workers AI fallback configuration: ${key}`);
+      }
+
+      return {
+        key,
+        accountId: account.accountId.trim(),
+        apiToken: account.apiToken.trim(),
+      };
+    });
+}
+
+async function runPrimary(ai, input) {
+  if (isAccountExhausted(PRIMARY_ACCOUNT_KEY)) return null;
+
+  let response;
+  try {
+    response = await ai.run(AI_MODEL, input, { returnRawResponse: true });
+  } catch (error) {
+    if (!isThrownAccountLimited(error)) throw error;
+    markAccountExhausted(PRIMARY_ACCOUNT_KEY);
+    return null;
+  }
+
+  const payload = await readJson(response);
+  if (response.ok) {
+    const result = unwrapResult(payload);
+    if (!result) throw new Error("Primary Workers AI returned an invalid response");
+    return result;
+  }
+  if (!isAccountLimited(response.status, payload)) {
+    throw new Error(`Primary Workers AI request failed with status ${response.status}`);
+  }
+
+  markAccountExhausted(PRIMARY_ACCOUNT_KEY);
+  return null;
+}
+
+async function runFallback(account, input) {
+  if (isAccountExhausted(account.key)) return null;
+
+  const response = await fetch(
+    `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(account.accountId)}/ai/run/${AI_MODEL}`,
+    {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${account.apiToken}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(input),
+    },
+  );
+  const payload = await readJson(response);
+
+  if (response.ok && payload?.success === true) {
+    if (!payload.result) throw new Error(`Workers AI fallback ${account.key} returned an invalid response`);
+    return payload.result;
+  }
+  if (!isAccountLimited(response.status, payload)) {
+    throw new Error(`Workers AI fallback ${account.key} failed with status ${response.status}`);
+  }
+
+  markAccountExhausted(account.key);
+  return null;
+}
+
+async function runAiWithFallback(env, input) {
+  const primaryResult = await runPrimary(env.AI, input);
+  if (primaryResult) return primaryResult;
+
+  for (const account of getFallbackAccounts(env)) {
+    const result = await runFallback(account, input);
+    if (result) return result;
+  }
+
+  throw new Error("All Workers AI accounts are exhausted");
+}
+
+export async function generateDescription(data, env) {
+  const result = await runAiWithFallback(env, buildAiInput(data));
 
   const choice = result?.choices?.[0];
   const content = choice?.message?.content;
   if (choice?.finish_reason !== "stop" || !isValidAiContent(content)) return null;
   return content.trim();
 }
-

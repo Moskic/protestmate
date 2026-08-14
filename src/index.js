@@ -69,7 +69,7 @@ async function handleGenerate(request, env) {
 
   let description;
   try {
-    description = await generateDescription(validation.value, env.AI);
+    description = await generateDescription(validation.value, env);
   } catch {
     return errorResponse(502, "AI_UPSTREAM_ERROR", "生成服务暂时不可用，请稍后重试。");
   }
