@@ -1,6 +1,6 @@
 import { OUTCOMES, SESSION_TYPES } from "../public/assets/shared/protest-schema.js";
 
-export const MAX_DESCRIPTION_WORDS = 300;
+export const MAX_DESCRIPTION_WORDS = 500;
 export const AI_MODEL = "@cf/google/gemma-4-26b-a4b-it";
 
 const FALLBACK_ACCOUNT_PREFIX = "WORKERS_AI_FALLBACK_";
@@ -49,7 +49,7 @@ export function isValidAiContent(content) {
   if (/```|^\s{0,3}#{1,6}\s|^\s*(?:[-*+]\s|\d+[.)]\s)|\*\*|__/.test(trimmed)) return false;
 
   const wordCount = countEnglishWords(trimmed);
-  if (wordCount === 0 || wordCount > MAX_DESCRIPTION_WORDS) return false;
+  if (wordCount === 0) return false;
   return /[.!?](?:["')\]]*)$/.test(trimmed);
 }
 
@@ -57,7 +57,7 @@ function buildAiInput(data) {
   return {
     messages: buildMessages(data),
     temperature: 0,
-    max_completion_tokens: 650,
+    max_completion_tokens: 900,
     chat_template_kwargs: { enable_thinking: false },
     stream: false,
   };
