@@ -95,10 +95,6 @@ async function readJson(response) {
   }
 }
 
-function unwrapResult(payload) {
-  return payload?.success === true && payload.result ? payload.result : payload;
-}
-
 function getFallbackAccounts(env) {
   return Object.entries(env)
     .filter(([key, value]) => key.startsWith(FALLBACK_ACCOUNT_PREFIX) && typeof value === "string")
@@ -133,27 +129,13 @@ function getFallbackAccounts(env) {
 async function runPrimary(ai, input) {
   if (isAccountExhausted(PRIMARY_ACCOUNT_KEY)) return null;
 
-  let response;
   try {
-    response = await ai.run(AI_MODEL, input, { returnRawResponse: true });
+    return await ai.run(AI_MODEL, input);
   } catch (error) {
     if (!isThrownAccountLimited(error)) throw error;
     markAccountExhausted(PRIMARY_ACCOUNT_KEY);
     return null;
   }
-
-  const payload = await readJson(response);
-  if (response.ok) {
-    const result = unwrapResult(payload);
-    if (!result) throw new Error("Primary Workers AI returned an invalid response");
-    return result;
-  }
-  if (!isAccountLimited(response.status, payload)) {
-    throw new Error(`Primary Workers AI request failed with status ${response.status}`);
-  }
-
-  markAccountExhausted(PRIMARY_ACCOUNT_KEY);
-  return null;
 }
 
 async function runFallback(account, input) {
