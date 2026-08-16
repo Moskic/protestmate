@@ -129,9 +129,26 @@ function getFallbackAccounts(env) {
 async function runPrimary(ai, input) {
   if (isAccountExhausted(PRIMARY_ACCOUNT_KEY)) return null;
 
+  const attemptId = crypto.randomUUID();
+  const startedAt = Date.now();
+  console.log(JSON.stringify({ event: "ai_primary_start", attemptId, model: AI_MODEL }));
+
   try {
-    return await ai.run(AI_MODEL, input);
+    const result = await ai.run(AI_MODEL, input);
+    console.log(JSON.stringify({
+      event: "ai_primary_success",
+      attemptId,
+      durationMs: Date.now() - startedAt,
+    }));
+    return result;
   } catch (error) {
+    console.error(JSON.stringify({
+      event: "ai_primary_error",
+      attemptId,
+      durationMs: Date.now() - startedAt,
+      name: error?.name,
+      code: error?.code ?? error?.cause?.code,
+    }));
     if (!isThrownAccountLimited(error)) throw error;
     markAccountExhausted(PRIMARY_ACCOUNT_KEY);
     return null;
