@@ -27,7 +27,7 @@ const protestStatuses = {
   },
 };
 
-export function normalizeEmailContent(content) {
+function normalizeEmailContent(content) {
   return content
     .toLowerCase()
     .replace(/[’‘]/g, "'")
@@ -36,7 +36,7 @@ export function normalizeEmailContent(content) {
     .trim();
 }
 
-export function classifyProtestStatus(content) {
+function classifyProtestStatus(content) {
   const normalized = normalizeEmailContent(content);
   const isNotIntentional = [
     "do not feel that the accident was caused intentionally or with malice",
@@ -91,4 +91,3 @@ export function initStatusChecker(elements) {
     result.removeAttribute("data-status");
   });
 }
-

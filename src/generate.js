@@ -1,7 +1,7 @@
 import { OUTCOMES, SESSION_TYPES } from "../public/assets/shared/protest-schema.js";
 
-export const MAX_DESCRIPTION_WORDS = 500;
-export const AI_MODEL = "@cf/google/gemma-4-26b-a4b-it";
+const MAX_DESCRIPTION_WORDS = 500;
+const AI_MODEL = "@cf/google/gemma-4-26b-a4b-it";
 
 const FALLBACK_ACCOUNT_PREFIX = "WORKERS_AI_FALLBACK_";
 const PRIMARY_ACCOUNT_KEY = "WORKERS_AI_PRIMARY";
@@ -20,7 +20,7 @@ const SYSTEM_PROMPT = `Turn the supplied sim-racing incident JSON into one natur
 const sessionLabels = new Map(SESSION_TYPES.map(({ value, aiLabel }) => [value, aiLabel]));
 const outcomeLabels = new Map(OUTCOMES.map(({ value, aiLabel }) => [value, aiLabel]));
 
-export function buildMessages(data) {
+function buildMessages(data) {
   const incidentData = {
     protested_driver_name: data.protestedDriverName,
     protested_driver_action: data.observedAction,
@@ -40,18 +40,13 @@ export function buildMessages(data) {
   ];
 }
 
-function countEnglishWords(content) {
-  return content.match(/\b[A-Za-z]+(?:['’-][A-Za-z]+)*\b/g)?.length ?? 0;
-}
-
-export function isValidAiContent(content) {
+function isValidAiContent(content) {
   if (typeof content !== "string" || !content.trim()) return false;
   const trimmed = content.trim();
   if (/<\/?think>/i.test(trimmed) || /[\r\n]/.test(trimmed)) return false;
   if (/```|^\s{0,3}#{1,6}\s|^\s*(?:[-*+]\s|\d+[.)]\s)|\*\*|__/.test(trimmed)) return false;
 
-  const wordCount = countEnglishWords(trimmed);
-  if (wordCount === 0) return false;
+  if (!/[A-Za-z]/.test(trimmed)) return false;
   return /[.!?](?:["')\]]*)$/.test(trimmed);
 }
 

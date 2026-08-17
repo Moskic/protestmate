@@ -38,7 +38,6 @@ export const FIELD_RULES = Object.freeze({
   additionalContext: { required: false, maxLength: 1200 },
 });
 
-export const FORM_FIELD_NAMES = Object.freeze(Object.keys(FIELD_RULES));
 export const OUTCOME_CONFLICTS = Object.freeze([["avoided_contact", "contact"]]);
 
 const incidentValues = new Set(INCIDENT_TYPES.map(({ value }) => value));
@@ -132,4 +131,3 @@ export function validateProtestPayload(payload) {
 
   return { fields: Object.keys(errors), errors, value };
 }
-

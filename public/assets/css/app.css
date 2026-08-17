@@ -512,10 +512,10 @@
         justify-content: space-between;
         gap: 16px;
         padding: 18px 22px;
+        border-bottom: 1px solid var(--line);
         background: var(--surface);
       }
 
-      .guide-header { border-bottom: 1px solid var(--line); }
       .guide-header h2 { margin: 0; font-size: 1.24rem; letter-spacing: -.02em; }
 
       .dialog-close {

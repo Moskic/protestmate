@@ -1,5 +1,5 @@
 import { generateDescription } from "./generate.js";
-import { validatePayload } from "./validation.js";
+import { validateProtestPayload as validatePayload } from "../public/assets/shared/protest-schema.js";
 
 const MAX_BODY_BYTES = 16 * 1024;
 const JSON_HEADERS = {
