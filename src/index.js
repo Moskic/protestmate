@@ -1,7 +1,7 @@
 import { generateDescription } from "./generate.js";
 import { validatePayload } from "./validation.js";
 
-const MAX_BODY_BYTES = 10 * 1024;
+const MAX_BODY_BYTES = 16 * 1024;
 const JSON_HEADERS = {
   "content-type": "application/json; charset=utf-8",
   "cache-control": "no-store",

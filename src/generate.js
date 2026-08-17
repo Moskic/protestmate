@@ -123,13 +123,41 @@ function parseAccount(key, value) {
   };
 }
 
-function getAccounts(env) {
-  const primary = parseAccount(PRIMARY_ACCOUNT_KEY, env[PRIMARY_ACCOUNT_KEY]);
+function getAccountConfigurations(env) {
   const fallbacks = Object.entries(env)
     .filter(([key, value]) => key.startsWith(FALLBACK_ACCOUNT_PREFIX) && typeof value === "string")
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([key, value]) => parseAccount(key, value));
-  return [primary, ...fallbacks];
+    .sort(([left], [right]) => left.localeCompare(right));
+  return [[PRIMARY_ACCOUNT_KEY, env[PRIMARY_ACCOUNT_KEY]], ...fallbacks];
+}
+
+function parseAvailableAccount(key, value) {
+  try {
+    return parseAccount(key, value);
+  } catch (error) {
+    if (key === PRIMARY_ACCOUNT_KEY) throw error;
+    console.error(JSON.stringify({
+      event: "ai_fallback_config_error",
+      account: key,
+      message: error.message,
+    }));
+    return null;
+  }
+}
+
+async function runAiWithFallback(env, input) {
+  const deadline = Date.now() + TOTAL_TIMEOUT_MS;
+
+  for (const [key, value] of getAccountConfigurations(env)) {
+    const account = parseAvailableAccount(key, value);
+    if (!account) continue;
+
+    const remainingMs = deadline - Date.now();
+    if (remainingMs <= 0) break;
+    const result = await runAccount(account, input, Math.min(ACCOUNT_TIMEOUT_MS, remainingMs));
+    if (result) return result;
+  }
+
+  throw new Error("All Workers AI accounts failed");
 }
 
 async function runAccount(account, input, timeoutMs) {
@@ -216,19 +244,6 @@ async function runAccount(account, input, timeoutMs) {
     return null;
   }
   throw new Error(`Workers AI account ${account.key} failed with status ${response.status}`);
-}
-
-async function runAiWithFallback(env, input) {
-  const deadline = Date.now() + TOTAL_TIMEOUT_MS;
-
-  for (const account of getAccounts(env)) {
-    const remainingMs = deadline - Date.now();
-    if (remainingMs <= 0) break;
-    const result = await runAccount(account, input, Math.min(ACCOUNT_TIMEOUT_MS, remainingMs));
-    if (result) return result;
-  }
-
-  throw new Error("All Workers AI accounts failed");
 }
 
 export async function generateDescription(data, env) {
