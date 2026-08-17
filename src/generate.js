@@ -4,7 +4,9 @@ export const MAX_DESCRIPTION_WORDS = 500;
 export const AI_MODEL = "@cf/google/gemma-4-26b-a4b-it";
 
 const FALLBACK_ACCOUNT_PREFIX = "WORKERS_AI_FALLBACK_";
-const PRIMARY_ACCOUNT_KEY = "AI";
+const PRIMARY_ACCOUNT_KEY = "WORKERS_AI_PRIMARY";
+const ACCOUNT_TIMEOUT_MS = 8_000;
+const TOTAL_TIMEOUT_MS = 25_000;
 const exhaustedAccounts = new Map();
 
 const SYSTEM_PROMPT = `Turn the supplied sim-racing incident JSON into one natural English paragraph for an iRacing protest.
@@ -83,8 +85,8 @@ function isAccountLimited(status, payload) {
   return status === 429 && payload?.errors?.some(({ code }) => Number(code) === 3036);
 }
 
-function isThrownAccountLimited(error) {
-  return Number(error?.code ?? error?.cause?.code) === 3036;
+function isAccountTimedOut(status, payload) {
+  return status === 408 || payload?.errors?.some(({ code }) => [3007, 3008].includes(Number(code)));
 }
 
 async function readJson(response) {
@@ -95,104 +97,138 @@ async function readJson(response) {
   }
 }
 
-function getFallbackAccounts(env) {
-  return Object.entries(env)
-    .filter(([key, value]) => key.startsWith(FALLBACK_ACCOUNT_PREFIX) && typeof value === "string")
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([key, value]) => {
-      let account;
-      try {
-        account = JSON.parse(value);
-      } catch {
-        throw new Error(`Invalid Workers AI fallback configuration: ${key}`);
-      }
+function parseAccount(key, value) {
+  let account;
+  try {
+    account = JSON.parse(value);
+  } catch {
+    throw new Error(`Invalid Workers AI account configuration: ${key}`);
+  }
 
-      if (
-        !account ||
-        Array.isArray(account) ||
-        typeof account.accountId !== "string" ||
-        !account.accountId.trim() ||
-        typeof account.apiToken !== "string" ||
-        !account.apiToken.trim()
-      ) {
-        throw new Error(`Invalid Workers AI fallback configuration: ${key}`);
-      }
+  if (
+    !account ||
+    Array.isArray(account) ||
+    typeof account.accountId !== "string" ||
+    !account.accountId.trim() ||
+    typeof account.apiToken !== "string" ||
+    !account.apiToken.trim()
+  ) {
+    throw new Error(`Invalid Workers AI account configuration: ${key}`);
+  }
 
-      return {
-        key,
-        accountId: account.accountId.trim(),
-        apiToken: account.apiToken.trim(),
-      };
-    });
+  return {
+    key,
+    accountId: account.accountId.trim(),
+    apiToken: account.apiToken.trim(),
+  };
 }
 
-async function runPrimary(ai, input) {
-  if (isAccountExhausted(PRIMARY_ACCOUNT_KEY)) return null;
+function getAccounts(env) {
+  const primary = parseAccount(PRIMARY_ACCOUNT_KEY, env[PRIMARY_ACCOUNT_KEY]);
+  const fallbacks = Object.entries(env)
+    .filter(([key, value]) => key.startsWith(FALLBACK_ACCOUNT_PREFIX) && typeof value === "string")
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([key, value]) => parseAccount(key, value));
+  return [primary, ...fallbacks];
+}
+
+async function runAccount(account, input, timeoutMs) {
+  if (isAccountExhausted(account.key)) return null;
 
   const attemptId = crypto.randomUUID();
   const startedAt = Date.now();
-  console.log(JSON.stringify({ event: "ai_primary_start", attemptId, model: AI_MODEL }));
+  const role = account.key === PRIMARY_ACCOUNT_KEY ? "primary" : "fallback";
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  console.log(JSON.stringify({ event: `ai_${role}_start`, attemptId, account: account.key, model: AI_MODEL }));
 
+  let response;
+  let payload;
   try {
-    const result = await ai.run(AI_MODEL, input);
-    console.log(JSON.stringify({
-      event: "ai_primary_success",
-      attemptId,
-      durationMs: Date.now() - startedAt,
-    }));
-    return result;
+    response = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(account.accountId)}/ai/run/${AI_MODEL}`,
+      {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${account.apiToken}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(input),
+        signal: controller.signal,
+      },
+    );
+    payload = await readJson(response);
   } catch (error) {
+    if (controller.signal.aborted || error?.name === "AbortError") {
+      console.warn(JSON.stringify({
+        event: `ai_${role}_timeout`,
+        attemptId,
+        account: account.key,
+        durationMs: Date.now() - startedAt,
+      }));
+      return null;
+    }
     console.error(JSON.stringify({
-      event: "ai_primary_error",
+      event: `ai_${role}_error`,
       attemptId,
+      account: account.key,
       durationMs: Date.now() - startedAt,
       name: error?.name,
       code: error?.code ?? error?.cause?.code,
     }));
-    if (!isThrownAccountLimited(error)) throw error;
-    markAccountExhausted(PRIMARY_ACCOUNT_KEY);
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
+  if (controller.signal.aborted) {
+    console.warn(JSON.stringify({
+      event: `ai_${role}_timeout`,
+      attemptId,
+      account: account.key,
+      durationMs: Date.now() - startedAt,
+    }));
     return null;
   }
-}
-
-async function runFallback(account, input) {
-  if (isAccountExhausted(account.key)) return null;
-
-  const response = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(account.accountId)}/ai/run/${AI_MODEL}`,
-    {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${account.apiToken}`,
-        "content-type": "application/json",
-      },
-      body: JSON.stringify(input),
-    },
-  );
-  const payload = await readJson(response);
 
   if (response.ok && payload?.success === true) {
-    if (!payload.result) throw new Error(`Workers AI fallback ${account.key} returned an invalid response`);
+    if (!payload.result) throw new Error(`Workers AI account ${account.key} returned an invalid response`);
+    console.log(JSON.stringify({
+      event: `ai_${role}_success`,
+      attemptId,
+      account: account.key,
+      durationMs: Date.now() - startedAt,
+    }));
     return payload.result;
   }
-  if (!isAccountLimited(response.status, payload)) {
-    throw new Error(`Workers AI fallback ${account.key} failed with status ${response.status}`);
+  if (isAccountTimedOut(response.status, payload)) {
+    console.warn(JSON.stringify({
+      event: `ai_${role}_timeout`,
+      attemptId,
+      account: account.key,
+      durationMs: Date.now() - startedAt,
+      status: response.status,
+    }));
+    return null;
   }
-
-  markAccountExhausted(account.key);
-  return null;
+  if (isAccountLimited(response.status, payload)) {
+    markAccountExhausted(account.key);
+    return null;
+  }
+  throw new Error(`Workers AI account ${account.key} failed with status ${response.status}`);
 }
 
 async function runAiWithFallback(env, input) {
-  const primaryResult = await runPrimary(env.AI, input);
-  if (primaryResult) return primaryResult;
+  const deadline = Date.now() + TOTAL_TIMEOUT_MS;
 
-  for (const account of getFallbackAccounts(env)) {
-    const result = await runFallback(account, input);
+  for (const account of getAccounts(env)) {
+    const remainingMs = deadline - Date.now();
+    if (remainingMs <= 0) break;
+    const result = await runAccount(account, input, Math.min(ACCOUNT_TIMEOUT_MS, remainingMs));
     if (result) return result;
   }
 
-  throw new Error("All Workers AI accounts are exhausted");
+  throw new Error("All Workers AI accounts failed");
 }
 
 export async function generateDescription(data, env) {
